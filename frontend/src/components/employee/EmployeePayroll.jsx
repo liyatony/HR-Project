@@ -79,7 +79,7 @@ const GeneratePayroll = ({ onClose }) => {
     const merged = attendance.map((attn) => {
       const emp = employdetails.find((e) => e._id === attn.empId);
 
-      const baseSalary = emp.salary || 0;
+      const baseSalary = emp?.salary || 0;
       const workingDays = DEFAULT_WORKING_DAYS;
       const presentDays = attn.presentDays || 0;
       const overtimeHours = attn.overtime || 0;
