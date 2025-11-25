@@ -5,6 +5,8 @@ import { AuthProvider } from "./utils/AuthContext";
 
 import Login from "./components/auth/Login";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ForgotPassword from "./components/auth/ForgetPassword";
+import ResetPassword from "./components/auth/ResetPassword";
 
 import AdminDashboard from "./components/dashboard/AdminDashboard";
 import DeptHeadDashboard from "./components/dashboard/DeptHeadDashboard";
@@ -20,6 +22,8 @@ import LeaveManagement from "./components/adminpages/LeaveManagement";
 const router = createBrowserRouter([
   // Login
   { path: "/login", element: <Login /> },
+ { path: "/forgot-password", element: <ForgotPassword/> },
+  { path: "/reset-password", element: <ResetPassword /> },
 
   // Admin Dashboard
   {

@@ -4,25 +4,24 @@ body {
   font-family: "Inter", sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
-  overflow-y: auto; /* enable vertical scrolling */
-  display: block;   /* remove flex from body */
+  overflow-y: auto;
 }
 
 /* --- Login Container --- */
 .login-container {
-  display: block; /* allow normal flow and scrolling */
   width: 100%;
   padding: 20px;
   min-height: 100vh;
   box-sizing: border-box;
-
-  /* optional: center card horizontally */
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Changed from center to flex-start */
+  padding-top: 40px; /* Add top padding for better spacing */
+  padding-bottom: 40px; /* Add bottom padding */
 }
 
 /* --- Login Card --- */
 .login-card {
-  display: inline-block; /* allows horizontal centering */
   width: 100%;
   max-width: 440px;
   background: #ffffff;
@@ -30,7 +29,7 @@ body {
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   text-align: center;
-  margin: 40px auto; /* center horizontally and add top/bottom space for scrolling */
+  margin: 0 auto; /* Center horizontally */
 }
 
 /* --- Logo and Header --- */
@@ -117,6 +116,7 @@ body {
   font-size: 14px;
   outline: none;
   transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
 }
 
 .input-icon input:focus {
@@ -149,8 +149,16 @@ body {
   margin-bottom: 24px;
 }
 
+.remember-me {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 .remember-me input {
   margin-right: 6px;
+  cursor: pointer;
 }
 
 .forgot-password {
@@ -189,4 +197,124 @@ body {
 /* --- MFA Input --- */
 .login-form .form-group input[type="text"] {
   padding-left: 12px;
+}
+
+/* --- Back to Login Button --- */
+.btn-text {
+  margin-top: 1rem;
+  width: 100%;
+  text-align: center;
+  color: #4f46e5;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.btn-text:hover {
+  color: #4338ca;
+  text-decoration: underline;
+}
+
+/* Success/Error containers for standalone pages */
+.success-message-container,
+.error-message-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.success-icon-large,
+.error-icon-large {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.success-icon-large {
+  color: #10b981;
+}
+
+.error-icon-large {
+  color: #ef4444;
+}
+
+.success-title,
+.error-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.success-text,
+.error-text {
+  font-size: 1rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.success-subtext,
+.error-subtext {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+/* Spinner animation */
+.fa-spin {
+  animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* MFA hint styling */
+.mfa-hint {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.mfa-hint b {
+  color: #4f46e5;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-height: 700px) {
+  .login-card {
+    padding: 32px 40px;
+  }
+  
+  .welcome-text {
+    font-size: 24px;
+    margin: 16px 0 4px;
+  }
+  
+  .logo-gradient {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .logo-text {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 32px 24px;
+  }
+  
+  .login-container {
+    padding: 20px 16px;
+  }
 }
