@@ -536,11 +536,12 @@
 .action-buttons {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .btn-action {
-  width: 32px;
-  height: 32px;
+  width: 50px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -548,8 +549,16 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 40px;
 }
+
+.btn-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+
 
 .btn-action.view {
   background: #dbeafe;
@@ -564,6 +573,7 @@
 .btn-action.approve {
   background: #d1fae5;
   color: #065f46;
+  
 }
 
 .btn-action.approve:hover {

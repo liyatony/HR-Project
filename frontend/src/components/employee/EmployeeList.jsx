@@ -238,9 +238,9 @@ const EmployeeList = () => {
                 onSubmit={handleAddEmployeeSuccess}
               />
 
-              <Button variant="outlined" startIcon={<FileDownload />}>
+              {/* <Button variant="outlined" startIcon={<FileDownload />}>
                 Export
-              </Button>
+              </Button> */}
               <Button
                 variant="contained"
                 startIcon={<PersonAdd />}
