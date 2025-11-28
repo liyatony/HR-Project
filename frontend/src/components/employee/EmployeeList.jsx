@@ -34,6 +34,9 @@ import Loading from "../common/Loading";
 import Add_employee from "./Add_employee";
 import axiosInstance from "../../utils/axiosInstance";
 
+import { useAuth } from "../../utils/AuthContext";
+
+
 const EmployeeList = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
