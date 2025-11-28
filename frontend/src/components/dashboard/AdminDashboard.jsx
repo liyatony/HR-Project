@@ -164,7 +164,7 @@ const loadPendingLeaves = async () => {
                 ))}
               </div>
               <div className="panel-footer">
-                <button className="btn-secondary btn-block"   onClick={()=>{navigate("/admin/leave-management ")}}  >View All Requests</button>
+                <button className="btn-secondary btn-block"   onClick={()=>{navigate("/admin/leave-management")}}  >View All Requests</button>
               </div>
             </div>
           </div>
