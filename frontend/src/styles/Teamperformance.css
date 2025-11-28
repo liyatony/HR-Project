@@ -1,0 +1,63 @@
+.rate-employee-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.rate-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rate-select {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0 15px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.kpi-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.kpi-item label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.feedback-box {
+  width: 100%;
+  height: 100px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.btn-submit-rating {
+  background: #4f46e5;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  width: 180px;
+}
+
+.btn-submit-rating:hover {
+  background: #4338ca;
+}

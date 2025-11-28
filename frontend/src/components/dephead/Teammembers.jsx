@@ -31,13 +31,16 @@ import {
 import Sidebar from "../common/Sidebar";
 import Navbar from "../common/Navbar";
 import Loading from "../common/Loading";
-import Add_employee from "./Add_employee";
+import Add_employee from "../employee/Add_employee";
 import axiosInstance from "../../utils/axiosInstance";
-
 import { useAuth } from "../../utils/AuthContext";
 
+const Teammembers  = () => {
 
-const EmployeeList = () => {
+      const { user } = useAuth(); // logged-in user (role, email, employeeId, etc.)
+
+
+
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,29 +56,55 @@ const EmployeeList = () => {
     fetchEmployees();
   }, []);
 
-  const fetchEmployees = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+//   const fetchEmployees = async () => {
+//     try {
+//       setLoading(true);
+//       setError(null);
       
-      console.log("Fetching employees from: /emp/employees");
-      const response = await axiosInstance.get("/emp/employees");
+//       console.log("Fetching employees from: /emp/employees");
+//       const response = await axiosInstance.get("/emp/employees");
       
-      console.log("Employees response:", response.data);
+//       console.log("Employees response:", response.data);
       
-      if (response.data.success) {
-        setEmployees(response.data.data || []);
-      } else {
-        setError("Failed to fetch employees");
-      }
-    } catch (err) {
-      console.error("Failed to fetch employees:", err);
-      console.error("Error response:", err.response?.data);
-      setError(err.response?.data?.message || "Failed to fetch employees");
-    } finally {
-      setLoading(false);
+//       if (response.data.success) {
+//         setEmployees(response.data.data || []);
+//       } else {
+//         setError("Failed to fetch employees");
+//       }
+//     } catch (err) {
+//       console.error("Failed to fetch employees:", err);
+//       console.error("Error response:", err.response?.data);
+//       setError(err.response?.data?.message || "Failed to fetch employees");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+const fetchEmployees = async () => {
+  try {
+    setLoading(true);
+
+    let response;
+
+    if (user?.role === "dpt_head") {
+      // Department Head → fetch only team members
+      response = await axiosInstance.get("/dept/my-team");
+    } else {
+      // Admin → fetch all employees
+      response = await axiosInstance.get("/emp/employees");
     }
-  };
+
+    setEmployees(response.data.data || []);
+
+  } catch (err) {
+    console.error("Failed to fetch employees:", err);
+    setError("Failed to fetch employees");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
 
   const handleAddEmployeeSuccess = () => {
     setShowAddEmployee(false);
@@ -241,9 +270,9 @@ const EmployeeList = () => {
                 onSubmit={handleAddEmployeeSuccess}
               />
 
-              {/* <Button variant="outlined" startIcon={<FileDownload />}>
+              <Button variant="outlined" startIcon={<FileDownload />}>
                 Export
-              </Button> */}
+              </Button>
               <Button
                 variant="contained"
                 startIcon={<PersonAdd />}
@@ -471,4 +500,4 @@ const EmployeeList = () => {
   );
 };
 
-export default EmployeeList;
+export default Teammembers;
