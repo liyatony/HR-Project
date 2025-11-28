@@ -236,6 +236,30 @@ body {
   color: #4f46e5;
 }
 
+/* Hamburger Icon Styles */
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 20px;
+  height: 14px;
+}
+
+.hamburger-icon span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: #64748b;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn:hover .hamburger-icon span {
+  background-color: #4f46e5;
+}
+
+
+/* 
 .page-title h1 {
   font-size: 24px;
   font-weight: 700;
@@ -247,7 +271,30 @@ body {
   font-size: 13px;
   color: #64748b;
   font-weight: 400;
+} */
+
+.page-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
+
+.page-title h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+
 
 .navbar-right {
   display: flex;
@@ -896,3 +943,58 @@ body {
 .btn-reject:hover svg {
   color: white;
 }
+
+
+/* Performance Chart Styles - ADD THIS TO YOUR EXISTING dashboard.css */
+.performance-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+.performance-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.performance-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.dept-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dept-score {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.performance-bar-wrapper {
+  width: 100%;
+  height: 10px;
+  background-color: #f1f5f9;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.performance-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+
+.dept-count {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+

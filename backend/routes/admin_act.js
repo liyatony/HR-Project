@@ -13,6 +13,7 @@ const AuditLog = require("../models/audit_log");
 const LeaveRequest = require("../models/leaveReques_model");
 const leaveApprovemail = require("../utils/approved_leaveTemplate");
 const leaveRejectedmail=require("../utils/rejected_leaveTemplate")
+const Performance = require("../models/performance_model");
 const {
   verifyAccessToken,
   isAdmin,
@@ -762,5 +763,134 @@ router.get("/pending", async (req, res) => {
   }
 });
 
+// Get all performance records (Admin only)
+router.get("/performance/all", verifyAccessToken, isAdmin, async (req, res) => {
+  try {
+    const month = req.query.month;
+
+    if (!month) {
+      return res.status(400).json({
+        success: false,
+        message: "month query is required (YYYY-MM)",
+      });
+    }
+
+    // Admin can see ALL departments
+    const performance = await Performance.find({
+      date: month,
+    })
+    .populate("employeeId", "name email department position")
+    .populate("reviewerId", "name department");
+
+    res.status(200).json({
+      success: true,
+      message: "Performance list fetched",
+      data: performance,
+    });
+  } catch (error) {
+    console.error("Error fetching performances:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch performance",
+      error: error.message,
+    });
+  }
+});
+
+// ============================================
+// DASHBOARD STATS ROUTE - ADD THIS
+// ============================================
+
+router.get("/dashboard-stats", verifyAccessToken, isAdmin, async (req, res) => {
+  try {
+    console.log("📊 Fetching dashboard stats...");
+
+    // Total Employees
+    const totalEmployees = await Employee.countDocuments({ active: true });
+
+    // Attendance Rate (Current Month)
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+
+    const attendanceSummary = await Attendance.aggregate([
+      {
+        $match: {
+          date: { $gte: firstDay, $lte: lastDay }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalPresent: { $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] } },
+          totalRecords: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const attendanceRate = attendanceSummary.length > 0 
+      ? ((attendanceSummary[0].totalPresent / attendanceSummary[0].totalRecords) * 100).toFixed(1)
+      : 0;
+
+    // Monthly Payroll (Current Month)
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const payrollSummary = await Payroll.aggregate([
+      {
+        $match: { month: currentMonth }
+      },
+      {
+        $group: {
+          _id: null,
+          totalPayroll: { $sum: "$netSalary" },
+          processedCount: { $sum: { $cond: [{ $eq: ["$status", "processed"] }, 1, 0] } },
+          totalCount: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const monthlyPayroll = payrollSummary.length > 0 
+      ? (payrollSummary[0].totalPayroll / 100000).toFixed(1)
+      : 0;
+
+    const payrollProcessed = payrollSummary.length > 0 
+      ? payrollSummary[0].processedCount === payrollSummary[0].totalCount
+      : false;
+
+    // Average Performance (Current Month)
+    const performanceSummary = await Performance.aggregate([
+      {
+        $match: { date: currentMonth }
+      },
+      {
+        $group: {
+          _id: null,
+          avgScore: { $avg: "$score" }
+        }
+      }
+    ]);
+
+    const avgPerformance = performanceSummary.length > 0 
+      ? ((performanceSummary[0].avgScore / 5) * 100).toFixed(1)
+      : 0;
+
+    res.status(200).json({
+      success: true,
+      message: "Dashboard stats fetched",
+      data: {
+        totalEmployees: totalEmployees,
+        attendanceRate: `${attendanceRate}%`,
+        monthlyPayroll: `₹${monthlyPayroll}L`,
+        avgPerformance: `${avgPerformance}%`
+      }
+    });
+  } catch (error) {
+    console.error("❌ Dashboard stats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch dashboard stats",
+      error: error.message,
+    });
+  }
+});
 
 module.exports = router;

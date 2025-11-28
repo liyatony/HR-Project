@@ -1,9 +1,8 @@
-// src/components/admin/AdminDashboard.jsx
+// src/components/dashboard/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import Sidebar from "../common/Sidebar";
 import Navbar from "../common/Navbar";
-import axiosinsInstance from "../../utils/axiosInstance"
-
+import axiosInstance from "../../utils/axiosInstance";
 import {
   FaFileInvoiceDollar,
   FaUserTie,
@@ -22,62 +21,132 @@ import { useNavigate } from "react-router-dom";
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState("dashboard");
-   const [showAddEmployee, setShowAddEmployee] = useState(false);
-    const [pendingLeaves, setPendingLeaves] = useState([]);
-    const [pendingRequests,setpendingRequests]=useState([])
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalEmployees: 0,
+    attendanceRate: "0%",
+    monthlyPayroll: "₹0",
+    avgPerformance: "0%"
+  });
+  const [performanceData, setPerformanceData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  const navigate =useNavigate()
+  // Fetch all dashboard data
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
 
-const getPendingLeaves = async () => {
-  return await axiosinsInstance.get("/emp/pending", {
-    withCredentials: true
-  });
-};
-
-useEffect(()=>{
- loadPendingLeaves()
-},[])
-
-
-const loadPendingLeaves = async () => {
+  const loadDashboardData = async () => {
+    setLoading(true);
     try {
-      const response = await getPendingLeaves();
-      setpendingRequests(response.data);
+      await Promise.all([
+        loadPendingLeaves(),
+        loadDashboardStats(),
+        loadPerformanceData()
+      ]);
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadPendingLeaves = async () => {
+    try {
+      const response = await axiosInstance.get("/emp/pending");
+      setPendingRequests(response.data);
     } catch (error) {
       console.error("Error loading pending leaves:", error);
     }
   };
 
+  const loadDashboardStats = async () => {
+    try {
+      const response = await axiosInstance.get("/emp/dashboard-stats");
+      if (response.data.success) {
+        setDashboardStats(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error loading dashboard stats:", error);
+    }
+  };
 
-  console.log(pendingLeaves);
+  const loadPerformanceData = async () => {
+    try {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const response = await axiosInstance.get(`/emp/performance/all?month=${currentMonth}`);
+      if (response.data.success) {
+        // Get department-wise average performance
+        const deptPerformance = calculateDepartmentPerformance(response.data.data);
+        setPerformanceData(deptPerformance);
+      }
+    } catch (error) {
+      console.error("Error loading performance data:", error);
+    }
+  };
 
-  
-  
+  const calculateDepartmentPerformance = (data) => {
+    const deptMap = {};
+    
+    data.forEach(perf => {
+      const dept = perf.employeeId?.department || "Unknown";
+      if (!deptMap[dept]) {
+        deptMap[dept] = { total: 0, count: 0 };
+      }
+      deptMap[dept].total += perf.score || 0;
+      deptMap[dept].count += 1;
+    });
 
+    return Object.entries(deptMap).map(([dept, values]) => ({
+      department: dept,
+      avgScore: (values.total / values.count).toFixed(1),
+      count: values.count
+    }));
+  };
 
   const statsCards = [
-    { title: "Total Employees", value: "124", change: "+8 this month", changeType: "positive", icon: <FaUserTie />, color: "#4f46e5", bgColor: "#eef2ff" },
-    { title: "Attendance Rate", value: "98.2%", change: "+2.3% from last month", changeType: "positive", icon: <FaCalendarCheck />, color: "#059669", bgColor: "#ecfdf5" },
-    { title: "Monthly Payroll", value: "₹3.2L", change: "Processed on time", changeType: "neutral", icon: <FaFileInvoiceDollar />, color: "#dc2626", bgColor: "#fef2f2" },
-    { title: "Avg Performance", value: "87.5%", change: "+5.2% improvement", changeType: "positive", icon: <FaChartLine />, color: "#ea580c", bgColor: "#fff7ed" },
+    { 
+      title: "Total Employees", 
+      value: dashboardStats.totalEmployees, 
+      change: dashboardStats.employeeChange || "+0 this month", 
+      changeType: "positive", 
+      icon: <FaUserTie />, 
+      color: "#4f46e5", 
+      bgColor: "#eef2ff" 
+    },
+    { 
+      title: "Attendance Rate", 
+      value: dashboardStats.attendanceRate, 
+      change: dashboardStats.attendanceChange || "+0% from last month", 
+      changeType: "positive", 
+      icon: <FaCalendarCheck />, 
+      color: "#059669", 
+      bgColor: "#ecfdf5" 
+    },
+    { 
+      title: "Monthly Payroll", 
+      value: dashboardStats.monthlyPayroll, 
+      change: dashboardStats.payrollStatus || "Processed", 
+      changeType: "neutral", 
+      icon: <FaFileInvoiceDollar />, 
+      color: "#dc2626", 
+      bgColor: "#fef2f2" 
+    },
+    { 
+      title: "Avg Performance", 
+      value: dashboardStats.avgPerformance, 
+      change: dashboardStats.performanceChange || "+0% improvement", 
+      changeType: "positive", 
+      icon: <FaChartLine />, 
+      color: "#ea580c", 
+      bgColor: "#fff7ed" 
+    },
   ];
-
-  const recentActivities = [
-    { user: "John Doe", action: "marked attendance", time: "10 mins ago", icon: <FaCheckCircle />, color: "#059669" },
-    { user: "Priya Sharma", action: "approved leave request", time: "25 mins ago", icon: <FaCheckCircle />, color: "#059669" },
-    { user: "System", action: "generated monthly payroll", time: "1 hour ago", icon: <FaFileInvoiceDollar />, color: "#4f46e5" },
-    { user: "Rajesh Kumar", action: "submitted performance review", time: "2 hours ago", icon: <FaStar />, color: "#ea580c" },
-    { user: "Admin", action: "added new employee", time: "3 hours ago", icon: <FaUserTie />, color: "#0891b2" },
-  ];
-
-  // const pendingRequests = [
-  //   { type: "Leave Request", employee: "Sarah Johnson", department: "Marketing", icon: <FaHourglassHalf /> },
-  //   { type: "Leave Request", employee: "Mike Chen", department: "Engineering", icon: <FaHourglassHalf /> },
-  //   { type: "Attendance Appeal", employee: "Lisa Anderson", department: "HR", icon: <FaHourglassHalf /> },
-  //   { type: "Leave Request", employee: "David Brown", department: "Sales", icon: <FaHourglassHalf /> },
-  // ];
 
   return (
     <div className="dashboard-wrapper">
@@ -98,6 +167,7 @@ const loadPendingLeaves = async () => {
         />
 
         <main className="content-area">
+          {/* Stats Cards */}
           <div className="stats-grid">
             {statsCards.map((stat, index) => (
               <div key={index} className="stat-card">
@@ -118,91 +188,123 @@ const loadPendingLeaves = async () => {
           </div>
 
           <div className="content-grid">
-            <div className="panel activity-panel">
+            {/* Performance Graph */}
+            <div className="panel performance-panel">
               <div className="panel-header">
-                <h3 className="panel-title">Recent Activities</h3>
-                <button className="btn-text">View All</button>
+                <h3 className="panel-title">
+                  <FaChartLine /> Department Performance Overview
+                </h3>
+                <button className="btn-text" onClick={() => navigate("/admin/performance")}>
+                  View Details
+                </button>
               </div>
               <div className="panel-body">
-                {recentActivities.map((activity, index) => (
-                  <div key={index} className="activity-item">
-                    <div className="activity-icon" style={{ color: activity.color }}>
-                      {activity.icon}
-                    </div>
-                    <div className="activity-content">
-                      <p className="activity-text">
-                        <strong>{activity.user}</strong> {activity.action}
-                      </p>
-                      <span className="activity-time">
-                        <FaClock /> {activity.time}
-                      </span>
-                    </div>
+                {loading ? (
+                  <div style={{ textAlign: 'center', padding: '2rem' }}>
+                    <p>Loading performance data...</p>
                   </div>
-                ))}
+                ) : performanceData.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                    <p>No performance data available for this month</p>
+                  </div>
+                ) : (
+                  <div className="performance-chart">
+                    {performanceData.map((dept, index) => (
+                      <div key={index} className="performance-bar-item">
+                        <div className="performance-bar-label">
+                          <span className="dept-name">{dept.department}</span>
+                          <span className="dept-score">{dept.avgScore}/5.0</span>
+                        </div>
+                        <div className="performance-bar-wrapper">
+                          <div 
+                            className="performance-bar-fill"
+                            style={{ 
+                              width: `${(dept.avgScore / 5) * 100}%`,
+                              backgroundColor: dept.avgScore >= 4 ? '#059669' : 
+                                             dept.avgScore >= 3 ? '#f59e0b' : '#dc2626'
+                            }}
+                          />
+                        </div>
+                        <span className="dept-count">{dept.count} employees</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
+            {/* Pending Requests */}
             <div className="panel requests-panel">
               <div className="panel-header">
-                <h3 className="panel-title">Pending Requests</h3>
+                <h3 className="panel-title">Pending Leave Requests</h3>
                 <span className="badge-count">{pendingRequests.length}</span>
               </div>
               <div className="panel-body">
-                {pendingRequests.map((req, index) => (
-                  <div key={index} className="request-item">
-                    <div className="request-icon">{req.icon}</div>
-                    <div className="request-content">
-                      <p className="request-type">Leave Requestes</p>
-                      <p className="request-employee">{req.employeeId.name}</p>
-                      <span className="request-dept">{req.employeeId.department}</span>
-                    </div>
-                    {/* <div className="request-actions">
-                      <button className="btn-icon btn-approve"><FaCheckCircle /></button>
-                      <button className="btn-icon btn-reject"><FaTimesCircle /></button>
-                    </div> */}
+                {pendingRequests.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                    <p>No pending leave requests</p>
                   </div>
-                ))}
+                ) : (
+                  pendingRequests.slice(0, 5).map((req, index) => (
+                    <div key={index} className="request-item">
+                      <div className="request-icon">
+                        <FaHourglassHalf />
+                      </div>
+                      <div className="request-content">
+                        <p className="request-type">Leave Request</p>
+                        <p className="request-employee">{req.employeeId.name}</p>
+                        <span className="request-dept">{req.employeeId.department}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
               <div className="panel-footer">
-                <button className="btn-secondary btn-block"   onClick={()=>{navigate("/admin/leave-management")}}  >View All Requests</button>
+                <button 
+                  className="btn-secondary btn-block" 
+                  onClick={() => navigate("/admin/leave-management")}
+                >
+                  View All Requests
+                </button>
               </div>
             </div>
           </div>
 
+          {/* Quick Actions */}
           <div className="quick-actions-section">
             <Add_employee
-                isOpen={showAddEmployee}
-                onClose={() => setShowAddEmployee(false)}
-                onSubmit={(formData) => {
-                  setShowAddEmployee(false);
-                }}
-              />
+              isOpen={showAddEmployee}
+              onClose={() => setShowAddEmployee(false)}
+              onSubmit={(formData) => {
+                setShowAddEmployee(false);
+                loadDashboardData(); // Refresh data after adding employee
+              }}
+            />
             <h3 className="section-title">Quick Actions</h3>
             <div className="actions-grid">
-              <button className="action-card" onClick={()=>{setShowAddEmployee(true)}}>
+              <button className="action-card" onClick={() => setShowAddEmployee(true)}>
                 <div className="action-icon" style={{ backgroundColor: '#eef2ff', color: '#4f46e5' }}>
                   <FaUserTie />
                 </div>
                 <span className="action-label">Add Employee</span>
-                
               </button>
-              <button className="action-card" onClick={()=>{navigate("/admin/attendance")}}>
+              <button className="action-card" onClick={() => navigate("/admin/attendance")}>
                 <div className="action-icon" style={{ backgroundColor: '#ecfdf5', color: '#059669' }}>
                   <FaCalendarCheck />
                 </div>
                 <span className="action-label">View Attendance</span>
               </button>
-              <button className="action-card" onClick={()=>{navigate("/admin/payroll")}}>
+              <button className="action-card" onClick={() => navigate("/admin/payroll")}>
                 <div className="action-icon" style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}>
                   <FaFileInvoiceDollar />
                 </div>
                 <span className="action-label">Generate Payroll</span>
               </button>
-              <button className="action-card" onClick={()=>{navigate("/admin/reports")}}>
+              <button className="action-card" onClick={() => navigate("/admin/performance")}>
                 <div className="action-icon" style={{ backgroundColor: '#fff7ed', color: '#ea580c' }}>
                   <FaChartLine />
                 </div>
-                <span className="action-label">View Reports</span>
+                <span className="action-label">Performance</span>
               </button>
             </div>
           </div>
@@ -213,4 +315,7 @@ const loadPendingLeaves = async () => {
 };
 
 export default AdminDashboard;
+
+
+
 

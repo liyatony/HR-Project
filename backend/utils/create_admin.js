@@ -127,6 +127,17 @@ const ADMINS = [
     position: "IT Manager",
     salary: 100000,
   },
+
+{
+    name: "Super Admin 3",
+    email: "aparnnaraju3@gmail.com", // Change this to your second admin email
+    password: "Admin@789",        // Change this to your second admin password
+    phone: "+91 9876543212",
+    department: "HR",
+    position: "HR Assistant Manager",
+    salary: 50000,
+  },
+
 ];
 
 async function createAdmin(adminData) {
