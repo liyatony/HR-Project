@@ -43,13 +43,13 @@ const getMenuItems = () => {
       id: "leaves", 
       label: "Leave Requests", 
       icon: <FaClipboardList />, 
-      path: "/employee/leaves" 
+      path: "/apply-leave" 
     },
     { 
       id: "payslips", 
       label: "My Payslips", 
       icon: <FaFileInvoiceDollar />, 
-      path: "/employee/payslips" 
+      path: "/payslips" 
     },
     { 
       id: "profile", 

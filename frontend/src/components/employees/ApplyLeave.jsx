@@ -5,6 +5,7 @@ import '../../styles/leavepage.css';
 import "../../styles/dashboard.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../../utils/AuthContext';
+import EmployeeSidebar from '../common/EmployeeSidebar';
 
 export default function LeaveManagementPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -128,56 +129,10 @@ export default function LeaveManagementPage() {
         <div className="sidebar-overlay" onClick={toggleSidebar}></div>
       )}
 
-      {/* SIDEBAR */}
-      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="sidebar-header">
-          <div className="logo-container">
-            <div className="logo-icon">HR</div>
-            <h2 className="logo-text">HR System</h2>
-          </div>
-        </div>
+      <EmployeeSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-        <nav className="sidebar-nav">
-          {/* <div className="nav-item" onClick={() => navigate("/employee/dashboard")}>
-            <FiHome className="nav-icon" />
-            <span className="nav-label">Dashboard</span>
-          </div> */}
 
-          <div className="nav-item active" onClick={() => navigate("/employee/profile")}>
-            <FiUser className="nav-icon" />
-            <span className="nav-label">View Profile</span>
-          </div>
-
-          <div className="nav-item" onClick={() => navigate("/mark-attendance")}>
-            <FiClock className="nav-icon" />
-            <span className="nav-label">Mark Attendance</span>
-          </div>
-
-          <div className="nav-item" onClick={() => navigate("/attendance-history")}>
-            <FiClipboard className="nav-icon" />
-            <span className="nav-label">Attendance History</span>
-          </div>
-
-          <div className="nav-item" onClick={() => navigate("/apply-leave")}>
-            <FiFileText className="nav-icon" />
-            <span className="nav-label">Apply Leave</span>
-          </div>
-
-          <div className="nav-item" onClick={() => navigate("/payslips")}>
-            <FiDownload className="nav-icon" />
-            <span className="nav-label">Download Payslip</span>
-          </div>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="nav-item logout" onClick={() => navigate("/")}>
-            <FiLogOut className="nav-icon" />
-            <span className="nav-label">Logout</span>
-          </div>
-        </div>
-      </aside>
-
-      {/* MAIN CONTENT */}
+    
       <div className="main-wrapper">
         <header className="top-navbar">
           <div className="navbar-left">
@@ -187,7 +142,7 @@ export default function LeaveManagementPage() {
 
             <div className="page-title">
               <h1>Leave Page</h1>
-              <p className="page-subtitle">Manage your leave requests</p>
+             
             </div>
           </div>
 
@@ -199,8 +154,8 @@ export default function LeaveManagementPage() {
                 alt="profile"
               />
               <div className="profile-info">
-                <span className="profile-name">Employee</span>
-                <span className="profile-role">Employee</span>
+                <span className="profile-name">Employee Dashboard</span>
+                <span className="profile-role">{user.name || ""}</span>
               </div>
             </div>
           </div>

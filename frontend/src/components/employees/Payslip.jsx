@@ -359,6 +359,7 @@ import { FiHome, FiUser, FiClock, FiClipboard, FiFileText, FiDownload, FiLogOut,
 import '../../styles/payslip.css';
 import "../../styles/dashboard.css";
 import { useAuth } from "../../utils/AuthContext";
+import EmployeeSidebar from "../common/EmployeeSidebar";
 
 const Payslip = () => {
   const navigate = useNavigate();
@@ -483,53 +484,9 @@ const Payslip = () => {
         <div className="sidebar-overlay" onClick={toggleSidebar}></div>
       )}
 
-      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="sidebar-header">
-          <div className="logo-container">
-            <div className="logo-icon">HR</div>
-            <h2 className="logo-text">HR System</h2>
-          </div>
-        </div>
+ <EmployeeSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-        <nav className="sidebar-nav">
-          {/* <div className="nav-item" onClick={() => navigate("/employee/dashboard")}>
-            <FiHome className="nav-icon" />
-            <span className="nav-label">Dashboard</span>
-          </div> */}
-
-          <div className="nav-item" onClick={() => navigate("/employee/profile")}>
-            <FiUser className="nav-icon" />
-            <span className="nav-label">View Profile</span>
-          </div>
-
-          <div className="nav-item" onClick={() => navigate("/mark-attendance")}>
-            <FiClock className="nav-icon" />
-            <span className="nav-label">Mark Attendance</span>
-          </div>
-
-          <div className="nav-item" onClick={() => navigate("/attendance-history")}>
-            <FiClipboard className="nav-icon" />
-            <span className="nav-label">Attendance History</span>
-          </div>
-
-          <div className="nav-item" onClick={() => navigate("/apply-leave")}>
-            <FiFileText className="nav-icon" />
-            <span className="nav-label">Apply Leave</span>
-          </div>
-
-          <div className="nav-item active" onClick={() => navigate("/payslips")}>
-            <FiDownload className="nav-icon" />
-            <span className="nav-label">Download Payslip</span>
-          </div>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="nav-item logout" onClick={() => navigate("/")}>
-            <FiLogOut className="nav-icon" />
-            <span className="nav-label">Logout</span>
-          </div>
-        </div>
-      </aside>
+     
 
       <div className="main-wrapper">
         <header className="top-navbar">
@@ -552,7 +509,7 @@ const Payslip = () => {
               />
               <div className="profile-info">
                 <span className="profile-name">Employee Dashboard</span>
-                <span className="profile-role">Employee</span>
+                <span className="profile-role">{user.name || ""}</span>
               </div>
             </div>
           </div>
@@ -569,8 +526,7 @@ const Payslip = () => {
               {!selectedPayslip ? (
                 <div className="payslips-list">
                   <div className="content-header">
-                    {/* <h2>Your Payslips</h2>
-                    <p>View and download your monthly payslips</p> */}
+                  
                   </div>
 
                   {payslips?.length === 0 ? (
@@ -654,9 +610,8 @@ const Payslip = () => {
                     className="payslip-print"
                   >
                     <div className="print-header">
-                      <h1>Company Name</h1>
-                      <p>Company Address Line 1</p>
-                      <p>City, State - PIN Code</p>
+                      <h1>Payslip</h1>
+                     
                       <h2 style={{ marginTop: "20px", color: "#333" }}>
                         Payslip for {formatMonth(selectedPayslip.month)}
                       </h2>

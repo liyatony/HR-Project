@@ -150,7 +150,7 @@ const EmployeeDashboard = () => {
                 <span className="action-label">Attendance History</span>
               </button>
 
-              <button className="action-card" onClick={() => navigate("/employee/payslips")}>
+              <button className="action-card" onClick={() => navigate("/payslips")}>
                 <div className="action-icon" style={{ backgroundColor: "#fef2f2", color: "#dc2626" }}>
                   <FaFileInvoiceDollar />
                 </div>
