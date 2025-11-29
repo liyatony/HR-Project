@@ -3,11 +3,21 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
+// const generateAccessTokenPayload = (user) => ({
+//   id: user._id,
+//   employeeId: user.employeeId,
+//   email: user.email,
+//   role: user.role,
+//   name: (user.employeeId && user.employeeId.name) || user.name || ""
+// });
 const generateAccessTokenPayload = (user) => ({
   id: user._id,
   employeeId: user.employeeId,
   email: user.email,
-  role: user.role,
+
+  // 🔥 Convert user → employee in token
+  role: user.role === "user" ? "employee" : user.role,
+
   name: (user.employeeId && user.employeeId.name) || user.name || ""
 });
 

@@ -18,6 +18,10 @@ import Reports from "./components/adminpages/Reports";
 import Attendance from "./components/adminpages/Attendance";
 import Performance from "./components/adminpages/Performance";
 import LeaveManagement from "./components/adminpages/LeaveManagement";
+import ViewProfile from "./components/employees/ViewProfile";
+import ApplyLeave from "./components/employees/ApplyLeave";
+import PaySlips from "./components/employees/Payslip";
+
 
 const router = createBrowserRouter([
   // Login
@@ -144,6 +148,35 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+
+ //new route
+
+// Employee routes
+{
+  path: "/employee/profile",
+  element: (
+    <ProtectedRoute roles={["employee"]}>
+      <ViewProfile />
+    </ProtectedRoute>
+  ),
+},
+{
+  path: "/apply-leave",
+  element: (
+    <ProtectedRoute roles={["employee"]}>
+      <ApplyLeave />
+    </ProtectedRoute>
+  ),
+},
+{
+  path: "/payslips",
+  element: (
+    <ProtectedRoute roles={["employee"]}>
+      <PaySlips />
+    </ProtectedRoute>
+  ),
+},
+
 
   // Unauthorized page
   { 

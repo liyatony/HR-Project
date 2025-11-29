@@ -347,7 +347,8 @@ const Login = () => {
         navigate("/dept-head-dashboard");
         break;
       case "employee":
-        navigate("/employee-dashboard");
+        // navigate("/employee-dashboard");
+        navigate("/employee/profile");
         break;
       default:
         navigate("/dashboard");
