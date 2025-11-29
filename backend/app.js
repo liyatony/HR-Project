@@ -1,18 +1,20 @@
-
 // backend/app.js
 const express = require("express");
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT || 4300;
 require("./config/bd_employee");
+
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 // CORS Configuration
-app.use(cors({ 
-  origin: process.env.FRONTEND_URL || "http://localhost:5173", 
-  credentials: true 
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 // Middleware
 app.use(express.json());
@@ -32,20 +34,30 @@ const leave_route = require("./routes/leaveRoutes");
 const payroll_route = require("./routes/payrollRoutes");
 
 // Mount Routes
-app.use("/auth", auth_route); // Authentication routes - FIRST
-app.use("/emp", admin_route); // Admin routes for employee management
-app.use("/emp", employee_personal_route); // Employee personal routes (my-attendance, my-payslips, etc)
-app.use("/dept", dept_head_route); // Department head routes
+// app.use("/auth", auth_route); // Authentication routes - FIRST
+// app.use("/emp", admin_route); // Admin routes for employee management
+// app.use("/emp", employee_personal_route); // Employee personal routes (my-attendance, my-payslips, etc)
+// app.use("/dept", dept_head_route); // Department head routes
+
+app.use("/auth", auth_route);               // Authentication routes
+
+app.use("/emp", employee_personal_route);   // Employee personal routes (Correct place)
+
+// Admin routes MUST NOT use /emp — avoid overriding employee routes
+app.use("/admin", admin_route);             // Admin-only routes
+
+app.use("/dept", dept_head_route);          // Department head routes
+
 app.use("/", employee_route); // Employee routes
 app.use("/", leave_route); // Leave routes
 app.use("/", payroll_route); // Payroll routes
 
 // Health Check
 app.get("/", (req, res) => {
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     message: "HR Management System API is running",
-    version: "1.0.0"
+    version: "1.0.0",
   });
 });
 
@@ -55,7 +67,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
     message: "Something went wrong!",
-    error: process.env.NODE_ENV === "development" ? err.message : undefined
+    error: process.env.NODE_ENV === "development" ? err.message : undefined,
   });
 });
 
@@ -63,12 +75,12 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found"
+    message: "Route not found",
   });
 });
 
 // Start Server
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
 });
