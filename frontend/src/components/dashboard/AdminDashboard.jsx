@@ -1,7 +1,9 @@
 // src/components/admin/AdminDashboard.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../common/Sidebar";
 import Navbar from "../common/Navbar";
+import axiosinsInstance from "../../utils/axiosInstance"
+
 import {
   FaFileInvoiceDollar,
   FaUserTie,
@@ -21,10 +23,39 @@ const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState("dashboard");
    const [showAddEmployee, setShowAddEmployee] = useState(false);
+    const [pendingLeaves, setPendingLeaves] = useState([]);
+    const [pendingRequests,setpendingRequests]=useState([])
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   const navigate =useNavigate()
+
+const getPendingLeaves = async () => {
+  return await axiosinsInstance.get("/emp/pending", {
+    withCredentials: true
+  });
+};
+
+useEffect(()=>{
+ loadPendingLeaves()
+},[])
+
+
+const loadPendingLeaves = async () => {
+    try {
+      const response = await getPendingLeaves();
+      setpendingRequests(response.data);
+    } catch (error) {
+      console.error("Error loading pending leaves:", error);
+    }
+  };
+
+
+  console.log(pendingLeaves);
+
+  
+  
+
 
   const statsCards = [
     { title: "Total Employees", value: "124", change: "+8 this month", changeType: "positive", icon: <FaUserTie />, color: "#4f46e5", bgColor: "#eef2ff" },
@@ -41,12 +72,12 @@ const AdminDashboard = () => {
     { user: "Admin", action: "added new employee", time: "3 hours ago", icon: <FaUserTie />, color: "#0891b2" },
   ];
 
-  const pendingRequests = [
-    { type: "Leave Request", employee: "Sarah Johnson", department: "Marketing", icon: <FaHourglassHalf /> },
-    { type: "Leave Request", employee: "Mike Chen", department: "Engineering", icon: <FaHourglassHalf /> },
-    { type: "Attendance Appeal", employee: "Lisa Anderson", department: "HR", icon: <FaHourglassHalf /> },
-    { type: "Leave Request", employee: "David Brown", department: "Sales", icon: <FaHourglassHalf /> },
-  ];
+  // const pendingRequests = [
+  //   { type: "Leave Request", employee: "Sarah Johnson", department: "Marketing", icon: <FaHourglassHalf /> },
+  //   { type: "Leave Request", employee: "Mike Chen", department: "Engineering", icon: <FaHourglassHalf /> },
+  //   { type: "Attendance Appeal", employee: "Lisa Anderson", department: "HR", icon: <FaHourglassHalf /> },
+  //   { type: "Leave Request", employee: "David Brown", department: "Sales", icon: <FaHourglassHalf /> },
+  // ];
 
   return (
     <div className="dashboard-wrapper">
@@ -121,19 +152,19 @@ const AdminDashboard = () => {
                   <div key={index} className="request-item">
                     <div className="request-icon">{req.icon}</div>
                     <div className="request-content">
-                      <p className="request-type">{req.type}</p>
-                      <p className="request-employee">{req.employee}</p>
-                      <span className="request-dept">{req.department}</span>
+                      <p className="request-type">Leave Requestes</p>
+                      <p className="request-employee">{req.employeeId.name}</p>
+                      <span className="request-dept">{req.employeeId.department}</span>
                     </div>
-                    <div className="request-actions">
+                    {/* <div className="request-actions">
                       <button className="btn-icon btn-approve"><FaCheckCircle /></button>
                       <button className="btn-icon btn-reject"><FaTimesCircle /></button>
-                    </div>
+                    </div> */}
                   </div>
                 ))}
               </div>
               <div className="panel-footer">
-                <button className="btn-secondary btn-block">View All Requests</button>
+                <button className="btn-secondary btn-block"   onClick={()=>{navigate("/admin/leave-management")}}  >View All Requests</button>
               </div>
             </div>
           </div>

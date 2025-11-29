@@ -388,4 +388,176 @@ router.get("/team-member/:id", verifyAccessToken, isDeptHead, async (req, res) =
   }
 });
 
+
+
+//PERFORMANCE
+// ⭐ A. CREATE OR UPDATE Monthly Performance
+
+const Performance = require("../models/performance_model");
+
+/**
+ * Add or Update Monthly Performance Review
+ * POST /dept/performance/add
+ */
+router.post("/performance/add", verifyAccessToken, isDeptHead, async (req, res) => {
+   console.log("BODY RECEIVED:", req.body); 
+  try {
+    const { employeeId, date, ratings, comments, score } = req.body;
+
+    // Validate
+    if (!employeeId || !date || !ratings || !score) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    // Get dept head
+    const deptHead = await Employee.findById(req.user.employeeId);
+    if (!deptHead) {
+      return res.status(404).json({
+        success: false,
+        message: "Department head not found",
+      });
+    }
+
+    // Ensure employee belongs to same department
+    const employee = await Employee.findById(employeeId);
+    if (!employee || employee.department !== deptHead.department) {
+      return res.status(403).json({
+        success: false,
+        message: "You can rate only employees in your department",
+      });
+    }
+
+    // Upsert (update if exists, else create)
+    const existing = await Performance.findOne({ employeeId, date });
+
+    if (existing) {
+      existing.ratings = ratings;
+      existing.comments = comments;
+      existing.score = score;
+      existing.reviewerId = deptHead._id;
+
+      await existing.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Performance updated",
+        data: existing,
+      });
+    }
+
+    const newPerformance = await Performance.create({
+      employeeId,
+      reviewerId: deptHead._id,
+      date,
+      ratings,
+      comments,
+      score,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Performance added successfully",
+      data: newPerformance,
+    });
+
+  } catch (error) {
+    console.error("Error adding performance:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add performance",
+      error: error.message,
+    });
+  }
+});
+//⭐ B. GET Performance of Entire Department
+/**
+ * Get all team performance of a month
+ * GET /dept/performance/all?month=YYYY-MM
+ */
+router.get("/performance/all", verifyAccessToken, isDeptHead, async (req, res) => {
+  try {
+    const month = req.query.month;
+
+    if (!month) {
+      return res.status(400).json({
+        success: false,
+        message: "month query is required (YYYY-MM)",
+      });
+    }
+
+    const deptHead = await Employee.findById(req.user.employeeId);
+    const department = deptHead.department;
+
+    // get employees of this dept
+    const employees = await Employee.find({
+      department,
+      active: true,
+    });
+
+    const employeeIds = employees.map((e) => e._id);
+
+    const performance = await Performance.find({
+      employeeId: { $in: employeeIds },
+      date: month,
+    }).populate("employeeId", "name email department");
+
+    res.status(200).json({
+      success: true,
+      message: "Performance list fetched",
+      data: performance,
+      department,
+    });
+  } catch (error) {
+    console.error("Error fetching performances:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch performance",
+      error: error.message,
+    });
+  }
+});
+//⭐ C. GET Specific Employee Performance
+/**
+ * Get single employee's performance for a month
+ * GET /dept/performance/:employeeId?month=YYYY-MM
+ */
+router.get("/performance/:employeeId", verifyAccessToken, isDeptHead, async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const month = req.query.month;
+
+    const deptHead = await Employee.findById(req.user.employeeId);
+
+    const employee = await Employee.findById(employeeId);
+    if (!employee || employee.department !== deptHead.department) {
+      return res.status(403).json({
+        success: false,
+        message: "Not allowed to view performance of other departments",
+      });
+    }
+
+    const performance = await Performance.findOne({
+      employeeId,
+      date: month,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Performance fetched",
+      data: performance,
+    });
+  } catch (error) {
+    console.error("Error fetching performance:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch performance",
+      error: error.message,
+    });
+  }
+});
+
+
 module.exports = router;

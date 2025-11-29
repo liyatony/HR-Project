@@ -22,6 +22,10 @@ import Reports from "./components/adminpages/Reports";
 import Attendance from "./components/adminpages/Attendance";
 import Performance from "./components/adminpages/Performance";
 import LeaveManagement from "./components/adminpages/LeaveManagement";
+import Teammembers from "./components/dephead/Teammembers";
+import Attendancecheck from "./components/dephead/Attendencecheck";
+import Leaveapproval from "./components/dephead/Leaveapproval";
+import Teamperformance from "./components/dephead/Teamperformance";
 
 // Employee Pages
 import MarkAttendance from "./components/employee/MarkAttendance";
@@ -121,7 +125,7 @@ const router = createBrowserRouter([
     path: "/dept-head/team",
     element: (
       <ProtectedRoute roles={["dpt_head"]}>
-        <EmployeeList />
+        <Teammembers />
       </ProtectedRoute>
     ),
   },
@@ -129,7 +133,7 @@ const router = createBrowserRouter([
     path: "/dept-head/attendance",
     element: (
       <ProtectedRoute roles={["dpt_head"]}>
-        <Attendance />
+        <Attendancecheck />
       </ProtectedRoute>
     ),
   },
@@ -137,7 +141,7 @@ const router = createBrowserRouter([
     path: "/dept-head/leave-requests",
     element: (
       <ProtectedRoute roles={["dpt_head"]}>
-        <LeaveManagement />
+        <Leaveapproval />
       </ProtectedRoute>
     ),
   },
@@ -145,7 +149,7 @@ const router = createBrowserRouter([
     path: "/dept-head/performance",
     element: (
       <ProtectedRoute roles={["dpt_head"]}>
-        <Performance />
+        <Teamperformance />
       </ProtectedRoute>
     ),
   },

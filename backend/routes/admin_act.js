@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const randomPass = require("../utils/password_generater");
 
+// Models
 const Employee = require("../models/employee_model");
 const Attendance = require("../models/attendance_model");
 const AttendanceCorrection = require("../models/attendance_correction_model");
@@ -15,8 +16,9 @@ const User = require("../models/user_model");
 const { verifyAccessToken, isAdmin, isDeptHead } = require("../middleware/auth");
 require("dotenv").config();
 
-  //MAIL SETUP
-
+/* ------------------------------------------------------------
+   MAIL SETUP
+------------------------------------------------------------ */
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -25,25 +27,29 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-
+/* ------------------------------------------------------------
+   MULTER CONFIG
+------------------------------------------------------------ */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) =>
     cb(null, `${file.fieldname}-${Date.now()}-${Math.round(Math.random() * 1e9)}`),
 });
 const upload = multer({ storage });
- //  EMPLOYEE MANAGEMENT
 
+/* ============================================================
+                    EMPLOYEE MANAGEMENT
+============================================================ */
 router.get("/employees", verifyAccessToken, isDeptHead, async (req, res) => {
   const employees = await Employee.find().select("-passwordHash");
   res.json({ success: true, data: employees });
 });
 
+/* ============================================================
+                    ATTENDANCE CORRECTIONS
+============================================================ */
 
-
-
-
-// GET all requests
+// GET: all correction requests
 router.get(
   "/attendance-corrections",
   verifyAccessToken,
@@ -57,7 +63,7 @@ router.get(
   }
 );
 
-// APPROVE request
+// APPROVE correction request
 router.put(
   "/attendance-corrections/:id/approve",
   verifyAccessToken,
@@ -84,7 +90,7 @@ router.put(
   }
 );
 
-// REJECT request
+// REJECT correction request
 router.put(
   "/attendance-corrections/:id/reject",
   verifyAccessToken,
