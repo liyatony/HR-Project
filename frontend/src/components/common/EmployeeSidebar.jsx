@@ -16,39 +16,48 @@ const EmployeeSidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout } = useAuth();
   
   // Define menu items based on role
-  const getMenuItems = () => {
-    const baseMenuItems = [
-      { 
-        id: "dashboard", 
-        label: "Dashboard", 
-        icon: <FaTachometerAlt />, 
-        path: "/employee-dashboard" 
-      },
-      { 
-        id: "attendance", 
-        label: "My Attendance", 
-        icon: <FaCalendarCheck />, 
-        path: "/employee/attendance" 
-      },
-      { 
-        id: "leaves", 
-        label: "Leave Requests", 
-        icon: <FaClipboardList />, 
-        path: "/employee/leaves" 
-      },
-      { 
-        id: "payslips", 
-        label: "My Payslips", 
-        icon: <FaFileInvoiceDollar />, 
-        path: "/employee/payslips" 
-      },
-      { 
-        id: "profile", 
-        label: "My Profile", 
-        icon: <FaUser />, 
-        path: "/employee/profile" 
-      },
-    ];
+  
+const getMenuItems = () => {
+  const baseMenuItems = [
+    { 
+      id: "dashboard", 
+      label: "Dashboard", 
+      icon: <FaTachometerAlt />, 
+      path: "/employee-dashboard" 
+    },
+    // ✨ NEW: Attendance submenu items
+    { 
+      id: "mark-attendance", 
+      label: "Mark Attendance", 
+      icon: <FaCalendarCheck />, 
+      path: "/employee/mark-attendance" 
+    },
+    { 
+      id: "attendance-history", 
+      label: "Attendance History", 
+      icon: <FaCalendarCheck />, 
+      path: "/employee/attendance-history" 
+    },
+    // End of new items
+    { 
+      id: "leaves", 
+      label: "Leave Requests", 
+      icon: <FaClipboardList />, 
+      path: "/employee/leaves" 
+    },
+    { 
+      id: "payslips", 
+      label: "My Payslips", 
+      icon: <FaFileInvoiceDollar />, 
+      path: "/employee/payslips" 
+    },
+    { 
+      id: "profile", 
+      label: "My Profile", 
+      icon: <FaUser />, 
+      path: "/employee/profile" 
+    },
+  ];
 
     // Add admin/dept_head specific items if needed
     if (user?.role === "admin" || user?.role === "dpt_head") {
