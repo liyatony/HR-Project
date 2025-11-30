@@ -1,4 +1,5 @@
-const LeaveRequest = require("../models/leave_request_model");
+// const LeaveRequest = require("../models/leave_request_model");
+const LeaveRequest = require("../models/leaveReques_model");
 const Employee = require("../models/employee_model");
 
 // Calculate number of days between two dates

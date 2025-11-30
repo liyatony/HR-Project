@@ -12,7 +12,6 @@ const Attendance = require("../models/attendance_model");
 const AttendanceCorrection = require("../models/attendance_correction_model");
 const Payroll = require("../models/payroll_model");
 const User = require("../models/user_model");
-<<<<<<< HEAD
 const AuditLog = require("../models/audit_log");
 const LeaveRequest = require("../models/leaveReques_model");
 const leaveApprovemail = require("../utils/approved_leaveTemplate");
@@ -26,11 +25,10 @@ const {
 require("dotenv").config();
 const payrollEmailTemplate = require("../utils/payrollemailTemplate");
 const rejected_leaveTemplate = require("../utils/rejected_leaveTemplate");
-=======
->>>>>>> 71ede71e2aae0a2ee20ac7d5988ef31f54ac64e9
 
-const { verifyAccessToken, isAdmin, isDeptHead } = require("../middleware/auth");
-require("dotenv").config();
+// const { verifyAccessToken, isAdmin, isDeptHead } = require("../middleware/auth");
+// require("dotenv").config();
+
 
 /* ------------------------------------------------------------
    MAIL SETUP
@@ -122,8 +120,7 @@ router.put(
 
     res.json({ success: true, message: "Correction rejected" });
   }
-<<<<<<< HEAD
-});
+);
 
 router.put("/leave_confirm", async (req, res) => {
   try {
@@ -411,8 +408,6 @@ router.get("/dashboard-stats", verifyAccessToken, isAdmin, async (req, res) => {
     });
   }
 });
-=======
-);
->>>>>>> 71ede71e2aae0a2ee20ac7d5988ef31f54ac64e9
+
 
 module.exports = router;
