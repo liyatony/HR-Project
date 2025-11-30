@@ -59,7 +59,7 @@ const EmployeeList = () => {
       setError(null);
       
       console.log("Fetching employees from: /emp/employees");
-      const response = await axiosInstance.get("/emp/employees");
+      const response = await axiosInstance.get("/admin/employees");
       
       console.log("Employees response:", response.data);
       

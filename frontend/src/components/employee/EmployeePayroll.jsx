@@ -57,8 +57,8 @@ const GeneratePayroll = ({ onClose }) => {
     const fetchData = async () => {
       try {
         const [empRes, attnRes] = await Promise.all([
-          axiosInstance.get("/emp/employees"),
-          axiosInstance.get("/emp/attendance"),
+          axiosInstance.get("/admin/employees"),
+          axiosInstance.get("/admin/attendance"),
         ]);
         console.log("Employee Response:", empRes.data);
         console.log("Attendance Response:", attnRes.data);
@@ -128,7 +128,7 @@ const GeneratePayroll = ({ onClose }) => {
 
       try {
         console.log("Saving initial payroll:", payroll);
-        const response = await axiosInstance.post("/emp/allmonthlypayrolls", payroll);
+        const response = await axiosInstance.post("/admin/allmonthlypayrolls", payroll);
         console.log("Initial payroll data saved to database:", response.data);
       } catch (err) {
         console.error("Error saving initial payroll:", err);
@@ -142,7 +142,7 @@ const GeneratePayroll = ({ onClose }) => {
   useEffect(() => {
     const fetchAllPayrolls = async () => {
       try {
-        const res = await axiosInstance.get("/emp/allpayrolls");
+        const res = await axiosInstance.get("/admin/allpayrolls");
         console.log("All payrolls fetched:", res.data);
         setAllPayrolls(res.data.data || res.data || []);
       } catch (err) {
@@ -241,7 +241,7 @@ const GeneratePayroll = ({ onClose }) => {
       
       const updatePromises = selectedEmployees.map((payrollId) => {
         console.log(`Updating payroll ${payrollId} with status: processed`);
-        return axiosInstance.put(`/emp/updatepayrolls/${payrollId}`, {
+        return axiosInstance.put(`/admin/updatepayrolls/${payrollId}`, {
           status: "processed",
         });
       });
@@ -249,7 +249,7 @@ const GeneratePayroll = ({ onClose }) => {
       const results = await Promise.all(updatePromises);
       console.log("Update results:", results);
 
-      const refreshResponse = await axiosInstance.get("/emp/allpayrolls");
+      const refreshResponse = await axiosInstance.get("/admin/allpayrolls");
       console.log("Refreshed payrolls:", refreshResponse.data);
       setAllPayrolls(refreshResponse.data.data || refreshResponse.data || []);
 

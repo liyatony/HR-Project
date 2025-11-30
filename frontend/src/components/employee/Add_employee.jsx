@@ -63,7 +63,7 @@ const Add_employee = ({ isOpen, onClose, onSubmit }) => {
     }
 
     try {
-      const res = await axiosInstance.post("/emp/add", sendData, {
+      const res = await axiosInstance.post("/admin/add", sendData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       

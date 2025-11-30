@@ -37,7 +37,7 @@ const Attendance = () => {
         setLoading(true);
         setError(null);
         
-        const response = await axiosInstance.get("/emp/attendance_records", {
+        const response = await axiosInstance.get("/admin/attendance_records", {
           params: { date: filterStartDate },
         });
         

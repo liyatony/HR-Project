@@ -40,7 +40,7 @@ const LeaveManagement = () => {
 
 
   const fetchLeaves =()=>{
-     axiosInstance.get("emp/leave").then((res) => {
+     axiosInstance.get("admin/leave").then((res) => {
       console.log(res.data.data);
 
       setLeaveRequests(res.data.data);
@@ -64,7 +64,7 @@ const LeaveManagement = () => {
 
   const handleApprove = (employeeId, startDate, endDate, employeeName, _id,email) => {
     axiosInstance
-      .put("emp/leave_confirm", { _id })
+      .put("admin/leave_confirm", { _id })
       .then((res) => {
         console.log(res.data.message);
         fetchLeaves()
@@ -96,7 +96,7 @@ const LeaveManagement = () => {
     const days = getWeekdayISODates(startDate, endDate);
 
     axiosInstance
-      .post("emp/approved_leave", { employeeId, days, employeeName, leaveId ,email})
+      .post("admin/approved_leave", { employeeId, days, employeeName, leaveId ,email})
       .then((res) => {
         console.log(res.data.message);
       }).catch((err)=>{
@@ -106,7 +106,7 @@ const LeaveManagement = () => {
 
   const handleReject = (leaveId,name,email,startDate,endDate) => {
 
-    axiosInstance.put("emp/rejected_leave",{leaveId,name,email,startDate,endDate}).then((res)=>{
+    axiosInstance.put("admin/rejected_leave",{leaveId,name,email,startDate,endDate}).then((res)=>{
 
     fetchLeaves();
 

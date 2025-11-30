@@ -358,7 +358,7 @@ const Performance = () => {
     setLoading(true);
     try {
       // Admin uses /emp/performance/all route
-      const res = await axiosInstance.get(`/emp/performance/all?month=${selectedMonth}`);
+      const res = await axiosInstance.get(`/admin/performance/all?month=${selectedMonth}`);
       
       if (res.data.success) {
         const formattedData = res.data.data.map((perf, index) => ({

@@ -87,7 +87,7 @@ const EmployeeProfile = () => {
       }
 
       const res = await axiosInstance.put(
-        `/emp/update/${formData._id}`,
+        `/admin/update/${formData._id}`,
         updatedFormdata,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -121,7 +121,7 @@ const EmployeeProfile = () => {
     ) {
       try {
         setLoading(true);
-        await axiosInstance.delete(`/emp/delete/${employee._id}`);
+        await axiosInstance.delete(`/admin/delete/${employee._id}`);
         alert("Employee deleted successfully!");
         navigate("/employees");
       } catch (error) {

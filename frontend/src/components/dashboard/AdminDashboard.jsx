@@ -58,7 +58,7 @@ const AdminDashboard = () => {
 
   const loadPendingLeaves = async () => {
     try {
-      const response = await axiosInstance.get("/emp/pending");
+      const response = await axiosInstance.get("/admin/pending");
       setPendingRequests(response.data);
     } catch (error) {
       console.error("Error loading pending leaves:", error);
@@ -67,7 +67,7 @@ const AdminDashboard = () => {
 
   const loadDashboardStats = async () => {
     try {
-      const response = await axiosInstance.get("/emp/dashboard-stats");
+      const response = await axiosInstance.get("/admin/dashboard-stats");
       if (response.data.success) {
         setDashboardStats(response.data.data);
       }
@@ -79,7 +79,7 @@ const AdminDashboard = () => {
   const loadPerformanceData = async () => {
     try {
       const currentMonth = new Date().toISOString().slice(0, 7);
-      const response = await axiosInstance.get(`/emp/performance/all?month=${currentMonth}`);
+      const response = await axiosInstance.get(`/admin/performance/all?month=${currentMonth}`);
       if (response.data.success) {
         // Get department-wise average performance
         const deptPerformance = calculateDepartmentPerformance(response.data.data);
