@@ -14,6 +14,8 @@ import {
   FaSortDown,
 } from "react-icons/fa";
 import "../../styles/dashboard.css";
+import { FiMenu } from "react-icons/fi";
+import { useAuth } from "../../utils/AuthContext";
 
 const AttendanceHistory = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -35,6 +37,8 @@ const AttendanceHistory = () => {
     key: "date",
     direction: "desc",
   });
+
+    const { user } = useAuth();
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -168,7 +172,34 @@ const AttendanceHistory = () => {
       <EmployeeSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <div className="main-wrapper">
-        <Navbar toggleSidebar={toggleSidebar} pageTitle="Attendance History" pageSubtitle="View your complete attendance records" />
+        {/* <Navbar toggleSidebar={toggleSidebar} pageTitle="Attendance History" pageSubtitle="View your complete attendance records" /> */}
+
+  <header className="top-navbar">
+          <div className="navbar-left">
+            <button className="toggle-btn" onClick={toggleSidebar}>
+              <FiMenu />
+            </button>
+
+            <div className="page-title">
+              <h1>Attendance History</h1>
+             
+            </div>
+          </div>
+
+          <div className="navbar-right">
+            <div className="user-profile">
+              <img
+                src="https://ui-avatars.com/api/?name=Employee&background=4f46e5&color=fff"
+                className="profile-img"
+                alt="profile"
+              />
+              <div className="profile-info">
+                <span className="profile-name">Employee Dashboard</span>
+                <span className="profile-role">{user.name || ""}</span>
+              </div>
+            </div>
+          </div>
+        </header>
 
         <main className="content-area">
           {/* Search Bar */}

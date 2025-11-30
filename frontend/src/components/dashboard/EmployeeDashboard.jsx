@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 
 import "../../styles/dashboard.css";
+import { FiMenu } from "react-icons/fi";
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
@@ -102,11 +103,38 @@ const EmployeeDashboard = () => {
       />
 
       <div className="main-wrapper">
-        <Navbar
+        {/* <Navbar
           toggleSidebar={toggleSidebar}
           pageTitle="Employee Dashboard"
           pageSubtitle={`Welcome back, ${user?.name || "Employee"}`}
-        />
+        /> */}
+
+          <header className="top-navbar">
+                  <div className="navbar-left">
+                    <button className="toggle-btn" onClick={toggleSidebar}>
+                      <FiMenu />
+                    </button>
+        
+                    <div className="page-title">
+                      <h1>Employee Dashboard</h1>
+                     
+                    </div>
+                  </div>
+        
+                  <div className="navbar-right">
+                    <div className="user-profile">
+                      <img
+                        src="https://ui-avatars.com/api/?name=Employee&background=4f46e5&color=fff"
+                        className="profile-img"
+                        alt="profile"
+                      />
+                      <div className="profile-info">
+                        <span className="profile-name">Employee Dashboard</span>
+                        <span className="profile-role">{user.name || ""}</span>
+                      </div>
+                    </div>
+                  </div>
+                </header>
 
         <main className="content-area">
           <div className="stats-grid">
