@@ -3,14 +3,18 @@ import React from "react";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { AuthProvider } from "./utils/AuthContext";
 
+// Auth
 import Login from "./components/auth/Login";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ForgotPassword from "./components/auth/ForgetPassword";
 import ResetPassword from "./components/auth/ResetPassword";
 
+// Dashboards
 import AdminDashboard from "./components/dashboard/AdminDashboard";
 import DeptHeadDashboard from "./components/dashboard/DeptHeadDashboard";
 import EmployeeDashboard from "./components/dashboard/EmployeeDashboard";
+
+// Admin pages
 import EmployeeList from "./components/employee/EmployeeList";
 import EmployeeProfile from "./components/employee/EmployeeProfile";
 import EmployeePayroll from "./components/employee/EmployeePayroll";
@@ -23,13 +27,22 @@ import Attendancecheck from "./components/dephead/Attendencecheck";
 import Leaveapproval from "./components/dephead/Leaveapproval";
 import Teamperformance from "./components/dephead/Teamperformance";
 
+// Employee Pages
+import MarkAttendance from "./components/employee/MarkAttendance";
+import AttendanceHistory from "./components/employee/AttendanceHistory";
+
+
 const router = createBrowserRouter([
-  // Login
+  // -------------------------------
+  //         AUTH ROUTES
+  // -------------------------------
   { path: "/login", element: <Login /> },
- { path: "/forgot-password", element: <ForgotPassword/> },
+  { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password", element: <ResetPassword /> },
 
-  // Admin Dashboard
+  // -------------------------------
+  //        ADMIN DASHBOARD
+  // -------------------------------
   {
     path: "/dashboard",
     element: (
@@ -38,16 +51,8 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  
-  // Department Head Dashboard
-  {
-    path: "/dept-head-dashboard",
-    element: (
-      <ProtectedRoute roles={["dpt_head"]}>
-        <DeptHeadDashboard />
-      </ProtectedRoute>
-    ),
-  },
+
+  // Admin Protected Routes
   {
     path: "/employees",
     element: (
@@ -65,15 +70,15 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "admin/payroll",
+    path: "/admin/payroll",
     element: (
       <ProtectedRoute roles={["admin"]}>
-        <EmployeePayroll/>
+        <EmployeePayroll />
       </ProtectedRoute>
     ),
   },
   {
-    path: "admin/reports",
+    path: "/admin/reports",
     element: (
       <ProtectedRoute roles={["admin"]}>
         <Reports />
@@ -81,7 +86,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "admin/attendance",
+    path: "/admin/attendance",
     element: (
       <ProtectedRoute roles={["admin"]}>
         <Attendance />
@@ -89,7 +94,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "admin/performance",
+    path: "/admin/performance",
     element: (
       <ProtectedRoute roles={["admin"]}>
         <Performance />
@@ -97,7 +102,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "admin/leave-management",
+    path: "/admin/leave-management",
     element: (
       <ProtectedRoute roles={["admin"]}>
         <LeaveManagement />
@@ -105,7 +110,17 @@ const router = createBrowserRouter([
     ),
   },
 
-  // Department Head Routes
+  // -------------------------------
+  //      DEPARTMENT HEAD ROUTES
+  // -------------------------------
+  {
+    path: "/dept-head-dashboard",
+    element: (
+      <ProtectedRoute roles={["dpt_head"]}>
+        <DeptHeadDashboard />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: "/dept-head/team",
     element: (
@@ -139,7 +154,9 @@ const router = createBrowserRouter([
     ),
   },
 
-  // Employee dashboard route
+  // -------------------------------
+  //         EMPLOYEE ROUTES
+  // -------------------------------
   {
     path: "/employee-dashboard",
     element: (
@@ -149,47 +166,61 @@ const router = createBrowserRouter([
     ),
   },
 
-  // Unauthorized page
-  { 
-    path: "/unauthorized", 
+  // ⭐ EMPLOYEE ATTENDANCE ROUTES
+  {
+    path: "/employee/mark-attendance",
     element: (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontFamily: 'Arial, sans-serif'
-      }}>
-        <h1 style={{ color: '#dc2626', marginBottom: '1rem' }}>Unauthorized Access</h1>
-        <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-          You don't have permission to access this page.
-        </p>
-        <button 
-          onClick={() => window.location.href = '/login'}
+      <ProtectedRoute roles={["employee"]}>
+        <MarkAttendance />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/employee/attendance-history",
+    element: (
+      <ProtectedRoute roles={["employee"]}>
+        <AttendanceHistory />
+      </ProtectedRoute>
+    ),
+  },
+  
+
+  // -------------------------------
+  //       UNAUTHORIZED PAGE
+  // -------------------------------
+  {
+    path: "/unauthorized",
+    element: (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <h1 style={{ color: "#dc2626" }}>Unauthorized Access</h1>
+        <p>You don't have permission to access this page.</p>
+        <button
+          onClick={() => (window.location.href = "/login")}
           style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#4f46e5',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.375rem',
-            cursor: 'pointer'
+            padding: "10px 20px",
+            backgroundColor: "#4f46e5",
+            color: "#fff",
+            borderRadius: "5px",
+            border: "none",
           }}
         >
           Back to Login
         </button>
       </div>
-    )
+    ),
   },
 
-  // Default → Redirect to login
+
   { path: "/", element: <Navigate to="/login" replace /> },
-  
-  // Catch all - redirect to appropriate dashboard or login
-  { 
-    path: "*", 
-    element: <Navigate to="/login" replace /> 
-  },
+  { path: "*", element: <Navigate to="/login" replace /> },
 ]);
 
 export default function App() {

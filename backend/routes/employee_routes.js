@@ -1,307 +1,276 @@
-// backend/routes/employee_routes.js
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
+
 const Attendance = require("../models/attendance_model");
 const Payroll = require("../models/payroll_model");
 const Employee = require("../models/employee_model");
+const Leave = require("../models/Leave_model");
+const Holiday = require("../models/Holiday_model");
+const AttendanceCorrection = require("../models/attendance_correction_model"); // <-- IMPORTANT FIX
+
 const { verifyAccessToken } = require("../middleware/auth");
 
-/**
- * Get ONLY current logged-in employee's attendance summary
- * GET /emp/my-attendance
- */
+/* -------------------------------------------------------
+   Convert received employeeId to ObjectId safely
+--------------------------------------------------------*/
+function getObjectId(id) {
+  try {
+    if (typeof id === "object" && id._id)
+      return new mongoose.Types.ObjectId(id._id);
+    return new mongoose.Types.ObjectId(id);
+  } catch {
+    return id;
+  }
+}
+
+/* -------------------------------------------------------
+   Ensure Today Attendance Exists
+--------------------------------------------------------*/
+async function ensureTodayAttendance(employeeId, employeeName) {
+  const today = new Date().toISOString().split("T")[0];
+
+  let record = await Attendance.findOne({ employeeId, date: today });
+  if (record) return record;
+
+  // Auto detect holiday
+  const holiday = await Holiday.findOne({ date: today });
+  if (holiday) {
+    return Attendance.create({
+      employeeId,
+      employeeName,
+      date: today,
+      status: "leave",
+      isHoliday: true,
+      holidayName: holiday.name,
+    });
+  }
+
+  // Auto detect leave
+  const leaveApplied = await Leave.findOne({
+    employeeId,
+    status: "approved",
+    startDate: { $lte: today },
+    endDate: { $gte: today },
+  });
+
+  if (leaveApplied) {
+    return Attendance.create({
+      employeeId,
+      employeeName,
+      date: today,
+      status: "leave",
+      leaveId: leaveApplied._id,
+    });
+  }
+
+  // Default absent entry
+  return Attendance.create({
+    employeeId,
+    employeeName,
+    date: today,
+    status: "absent",
+  });
+}
+
+/* -------------------------------------------------------
+   My Attendance Summary (Dashboard)
+--------------------------------------------------------*/
 router.get("/my-attendance", verifyAccessToken, async (req, res) => {
   try {
-    // req.user.employeeId is the logged-in employee's ID
-    const employeeId = req.user.employeeId;
+    const employeeId = getObjectId(req.user.employeeId);
 
-    const attendanceData = await Attendance.aggregate([
-      { 
-        $match: { 
-          employeeId: employeeId  // ONLY this user's data
-        } 
-      },
+    const summary = await Attendance.aggregate([
+      { $match: { employeeId } },
       {
         $group: {
           _id: null,
-          totalPresent: { 
-            $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] } 
+          totalPresent: {
+            $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] },
           },
-          totalAbsent: { 
-            $sum: { $cond: [{ $eq: ["$status", "absent"] }, 1, 0] } 
+          totalAbsent: {
+            $sum: { $cond: [{ $eq: ["$status", "absent"] }, 1, 0] },
           },
-          totalLeaves: { 
-            $sum: { $cond: [{ $eq: ["$status", "leave"] }, 1, 0] } 
+          totalLeaves: {
+            $sum: { $cond: [{ $eq: ["$status", "leave"] }, 1, 0] },
           },
         },
       },
     ]);
 
-    const result = attendanceData[0] || {
-      totalPresent: 0,
-      totalAbsent: 0,
-      totalLeaves: 0,
-    };
-
-    res.status(200).json({
+    res.json({
       success: true,
-      message: "Your attendance summary",
-      data: {
-        present: result.totalPresent,
-        absent: result.totalAbsent,
-        leaves: result.totalLeaves,
-      },
+      data:
+        summary[0] || { totalPresent: 0, totalAbsent: 0, totalLeaves: 0 },
     });
-  } catch (error) {
-    console.error("Error fetching attendance:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch attendance",
-      error: error.message,
-    });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to fetch summary" });
   }
 });
 
-/**
- * Get ONLY current logged-in employee's detailed attendance records
- * GET /emp/my-attendance-records?month=2025-01
- */
+/* -------------------------------------------------------
+   GET: Attendance Records (Filter By Month)
+--------------------------------------------------------*/
 router.get("/my-attendance-records", verifyAccessToken, async (req, res) => {
   try {
-    const employeeId = req.user.employeeId;  // ONLY this user
-    const { month } = req.query;
+    const employeeId = getObjectId(req.user.employeeId);
 
-    let query = { employeeId };  // Filter by logged-in user only
-    
-    // If month filter provided
-    if (month) {
-      const startDate = new Date(month + "-01T00:00:00.000Z");
-      const endDate = new Date(startDate);
-      endDate.setMonth(endDate.getMonth() + 1);
-      
-      query.date = {
-        $gte: startDate.toISOString(),
-        $lt: endDate.toISOString(),
+    const filter = { employeeId };
+
+    if (req.query.month) {
+      const start = new Date(`${req.query.month}-01`);
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + 1);
+
+      filter.date = {
+        $gte: start.toISOString().split("T")[0],
+        $lte: end.toISOString().split("T")[0],
       };
     }
 
-    const records = await Attendance.find(query)
-      .sort({ date: -1 })
-      .limit(30);
+    const data = await Attendance.find(filter).sort({ date: -1 });
 
-    res.status(200).json({
-      success: true,
-      message: "Your attendance records",
-      data: records,
-    });
-  } catch (error) {
-    console.error("Error fetching attendance records:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch attendance records",
-      error: error.message,
-    });
+    res.json({ success: true, data });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to fetch records" });
   }
 });
 
-/**
- * Get ONLY current logged-in employee's payslips
- * GET /emp/my-payslips
- */
-router.get("/my-payslips", verifyAccessToken, async (req, res) => {
+/* -------------------------------------------------------
+   POST: Mark Check-In
+--------------------------------------------------------*/
+router.post("/mark-attendance", verifyAccessToken, async (req, res) => {
   try {
-    const employeeId = req.user.employeeId;  // ONLY this user
-    
-    // Get employee details to match empId (string)
-    const employee = await Employee.findById(employeeId);
-    if (!employee) {
-      return res.status(404).json({
-        success: false,
-        message: "Employee not found",
-      });
-    }
+    const employeeName = req.user.name;
+    const employeeId = getObjectId(req.user.employeeId);
+    const { date, checkIn } = req.body;
 
-    // Get ONLY this employee's payslips
-    const payslips = await Payroll.find({ 
-      empId: employee._id.toString(),  // Match by this user's ID
-      status: "processed" 
-    })
-      .sort({ month: -1 })
-      .limit(12);  // Last 12 months
+    let record = await Attendance.findOne({ employeeId, date });
 
-    res.status(200).json({
-      success: true,
-      message: "Your payslips",
-      data: payslips,
-    });
-  } catch (error) {
-    console.error("Error fetching payslips:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch payslips",
-      error: error.message,
-    });
+    if (!record)
+      record = await ensureTodayAttendance(employeeId, employeeName);
+
+    if (record.checkIn)
+      return res.status(400).json({ success: false, message: "Already checked in" });
+
+    record.checkIn = checkIn;
+    record.status = "present";
+    await record.save();
+
+    res.json({ success: true, message: "Check-in successful", data: record });
+  } catch {
+    res.status(500).json({ success: false, message: "Check-in failed" });
   }
 });
 
-/**
- * Get specific payslip details (ONLY if it belongs to logged-in employee)
- * GET /emp/payslip/:id
- */
-router.get("/payslip/:id", verifyAccessToken, async (req, res) => {
+/* -------------------------------------------------------
+   PUT: Mark Check-Out
+--------------------------------------------------------*/
+router.put("/mark-attendance/:id", verifyAccessToken, async (req, res) => {
   try {
-    const payslipId = req.params.id;
-    const employeeId = req.user.employeeId;  // Logged-in user
-    
-    const employee = await Employee.findById(employeeId);
-    if (!employee) {
-      return res.status(404).json({
-        success: false,
-        message: "Employee not found",
-      });
+    const { checkOut } = req.body;
+
+    const record = await Attendance.findById(req.params.id);
+    if (!record)
+      return res.status(404).json({ success: false, message: "Record not found" });
+
+    record.checkOut = checkOut;
+
+    if (record.checkIn) {
+      const [h1, m1] = record.checkIn.split(":").map(Number);
+      const [h2, m2] = checkOut.split(":").map(Number);
+
+      const total = h2 * 60 + m2 - (h1 * 60 + m1);
+      record.totalHours = total / 60;
+      record.overtimeHours = record.totalHours > 8 ? record.totalHours - 8 : 0;
     }
 
-    // Get payslip ONLY if it belongs to this employee
-    const payslip = await Payroll.findOne({
-      _id: payslipId,
-      empId: employee._id.toString(),  // Security: must match logged-in user
-    });
+    await record.save();
 
-    if (!payslip) {
-      return res.status(404).json({
-        success: false,
-        message: "Payslip not found or access denied",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Payslip details",
-      data: payslip,
-    });
-  } catch (error) {
-    console.error("Error fetching payslip:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch payslip",
-      error: error.message,
-    });
+    res.json({ success: true, message: "Check-out updated", data: record });
+  } catch {
+    res.status(500).json({ success: false, message: "Check-out failed" });
   }
 });
 
-/**
- * Get ONLY current logged-in employee's leave requests
- * GET /emp/my-leaves
- */
-router.get("/my-leaves", verifyAccessToken, async (req, res) => {
+/* -------------------------------------------------------
+   POST: Attendance Correction Request
+--------------------------------------------------------*/
+router.post("/my-attendance-correction", verifyAccessToken, async (req, res) => {
   try {
-    const employeeId = req.user.employeeId;  // ONLY this user
+    const { attendanceId, reason } = req.body;
 
-    // Note: When you implement Leave model, filter by employeeId
-    // const leaves = await Leave.find({ employeeId }).sort({ createdAt: -1 });
-    
-    // For now, returning empty array
-    const leaves = [];
+    if (!attendanceId || !reason?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Attendance ID & reason required",
+      });
+    }
 
-    res.status(200).json({
-      success: true,
-      message: "Your leave requests",
-      data: leaves,
+    const attendance = await Attendance.findById(attendanceId);
+    if (!attendance) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Attendance record not found" });
+    }
+
+    // Prevent duplicate request
+    const exists = await AttendanceCorrection.findOne({
+      attendanceId,
+      status: "pending",
     });
-  } catch (error) {
-    console.error("Error fetching leaves:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch leaves",
-      error: error.message,
+
+    if (exists) {
+      return res.status(400).json({
+        success: false,
+        message: "Correction already requested for this date",
+      });
+    }
+
+    await AttendanceCorrection.create({
+      employeeId: req.user.employeeId,
+      attendanceId,
+      date: attendance.date,
+      reason,
     });
+
+    res.json({ success: true, message: "Correction request submitted" });
+  } catch {
+    res.status(500).json({ success: false, message: "Request failed" });
   }
 });
 
-/**
- * Get ONLY current logged-in employee's profile
- * GET /emp/my-profile
- */
-router.get("/my-profile", verifyAccessToken, async (req, res) => {
+/* -------------------------------------------------------
+   Dashboard Summary
+--------------------------------------------------------*/
+router.get("/dashboard-summary", verifyAccessToken, async (req, res) => {
   try {
-    const employeeId = req.user.employeeId;  // ONLY this user
+    const employeeId = getObjectId(req.user.employeeId);
 
-    const employee = await Employee.findById(employeeId).select("-passwordHash");
+    const summary = await Attendance.aggregate([
+      { $match: { employeeId } },
+      {
+        $group: {
+          _id: null,
+          present: {
+            $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] },
+          },
+          absent: {
+            $sum: { $cond: [{ $eq: ["$status", "absent"] }, 1, 0] },
+          },
+          leaves: {
+            $sum: { $cond: [{ $eq: ["$status", "leave"] }, 1, 0] },
+          },
+        },
+      },
+    ]);
 
-    if (!employee) {
-      return res.status(404).json({
-        success: false,
-        message: "Employee not found",
-      });
-    }
-
-    res.status(200).json({
+    res.json({
       success: true,
-      message: "Your profile",
-      data: employee,
+      data: summary[0] || { present: 0, absent: 0, leaves: 0 },
     });
-  } catch (error) {
-    console.error("Error fetching profile:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch profile",
-      error: error.message,
-    });
-  }
-});
-
-/**
- * Update ONLY current logged-in employee's profile (limited fields)
- * PUT /emp/my-profile
- */
-router.put("/my-profile", verifyAccessToken, async (req, res) => {
-  try {
-    const employeeId = req.user.employeeId;  // ONLY this user
-    const { phone, email } = req.body;  // Only allow updating contact info
-
-    // Employees can only update their contact information
-    const updateData = {};
-    if (phone) updateData.phone = phone;
-    if (email) {
-      // Check if email is already used by another employee
-      const existing = await Employee.findOne({ 
-        email: email.toLowerCase(), 
-        _id: { $ne: employeeId } 
-      });
-      if (existing) {
-        return res.status(400).json({
-          success: false,
-          message: "Email already in use",
-        });
-      }
-      updateData.email = email.toLowerCase();
-    }
-
-    const employee = await Employee.findByIdAndUpdate(
-      employeeId,
-      updateData,
-      { new: true }
-    ).select("-passwordHash");
-
-    if (!employee) {
-      return res.status(404).json({
-        success: false,
-        message: "Employee not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Profile updated",
-      data: employee,
-    });
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update profile",
-      error: error.message,
-    });
+  } catch {
+    res.status(500).json({ success: false, message: "Summary fetch failed" });
   }
 });
 
