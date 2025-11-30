@@ -29,6 +29,15 @@ const admin_route = require("./routes/admin_act");
 const auth_route = require("./routes/auth");
 const employee_personal_route = require("./routes/employee_routes");
 const dept_head_route = require("./routes/dept_head_routes");
+const employee_route = require("./routes/employeeRoutes");
+const leave_route = require("./routes/leaveRoutes");
+const payroll_route = require("./routes/payrollRoutes");
+
+// Mount Routes
+// app.use("/auth", auth_route); // Authentication routes - FIRST
+// app.use("/emp", admin_route); // Admin routes for employee management
+// app.use("/emp", employee_personal_route); // Employee personal routes (my-attendance, my-payslips, etc)
+// app.use("/dept", dept_head_route); // Department head routes
 
 app.use("/auth", auth_route);               // Authentication routes
 
@@ -38,6 +47,10 @@ app.use("/emp", employee_personal_route);   // Employee personal routes (Correct
 app.use("/admin", admin_route);             // Admin-only routes
 
 app.use("/dept", dept_head_route);          // Department head routes
+
+app.use("/", employee_route); // Employee routes
+app.use("/", leave_route); // Leave routes
+app.use("/", payroll_route); // Payroll routes
 
 // Health Check
 app.get("/", (req, res) => {

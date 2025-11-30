@@ -22,6 +22,9 @@ import Reports from "./components/adminpages/Reports";
 import Attendance from "./components/adminpages/Attendance";
 import Performance from "./components/adminpages/Performance";
 import LeaveManagement from "./components/adminpages/LeaveManagement";
+import ViewProfile from "./components/employees/ViewProfile";
+import ApplyLeave from "./components/employees/ApplyLeave";
+import PaySlips from "./components/employees/Payslip";
 import Teammembers from "./components/dephead/Teammembers";
 import Attendancecheck from "./components/dephead/Attendencecheck";
 import Leaveapproval from "./components/dephead/Leaveapproval";
@@ -166,6 +169,36 @@ const router = createBrowserRouter([
     ),
   },
 
+ //new route
+
+// Employee routes
+{
+  path: "/employee/profile",
+  element: (
+    <ProtectedRoute roles={["employee"]}>
+      <ViewProfile />
+    </ProtectedRoute>
+  ),
+},
+{
+  path: "/apply-leave",
+  element: (
+    <ProtectedRoute roles={["employee"]}>
+      <ApplyLeave />
+    </ProtectedRoute>
+  ),
+},
+{
+  path: "/payslips",
+  element: (
+    <ProtectedRoute roles={["employee"]}>
+      <PaySlips />
+    </ProtectedRoute>
+  ),
+},
+
+
+  
   // ⭐ EMPLOYEE ATTENDANCE ROUTES
   {
     path: "/employee/mark-attendance",
