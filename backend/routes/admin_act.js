@@ -12,7 +12,7 @@ const User = require("../models/user_model");
 const AuditLog = require("../models/audit_log");
 const LeaveRequest = require("../models/leaveReques_model");
 const leaveApprovemail = require("../utils/approved_leaveTemplate");
-const leaveRejectedmail=require("../utils/rejected_leaveTemplate")
+const leaveRejectedmail = require("../utils/rejected_leaveTemplate")
 const Performance = require("../models/performance_model");
 const {
   verifyAccessToken,
@@ -724,36 +724,36 @@ router.post("/approved_leave", async (req, res) => {
 
 router.put("/rejected_leave", async (req, res) => {
   const id = req.body.leaveId;
-  const name=req.body.name;
-  const email=req.body.email;
-  const startDate=req.body.startDate;
-  const endDate =req.body.endDate;
+  const name = req.body.name;
+  const email = req.body.email;
+  const startDate = req.body.startDate;
+  const endDate = req.body.endDate;
 
   try {
-  if (!id) {
-    return res.status(400).json({ message: "leaveId is required" });
-  }
+    if (!id) {
+      return res.status(400).json({ message: "leaveId is required" });
+    }
 
-  const leavreq = await LeaveRequest.findByIdAndUpdate(
-    id,
-    { status: "rejected" },
-    { new: true }
-  );
+    const leavreq = await LeaveRequest.findByIdAndUpdate(
+      id,
+      { status: "rejected" },
+      { new: true }
+    );
 
-  if (!leavreq) {
-    return res.status(404).json({ message: "Leave request not found" });
-  }
-
-
+    if (!leavreq) {
+      return res.status(404).json({ message: "Leave request not found" });
+    }
 
 
 
-  console.log("Rejected Leave:", leavreq);
-
-  const { html, text }= leaveRejectedmail(name,startDate,endDate)
 
 
-   try {
+    console.log("Rejected Leave:", leavreq);
+
+    const { html, text } = leaveRejectedmail(name, startDate, endDate)
+
+
+    try {
       await transporter.sendMail({
         from: `"HR System" <${process.env.EMAIL_USER}>`,
         to: email,
@@ -770,19 +770,19 @@ router.put("/rejected_leave", async (req, res) => {
 
 
 
-  res.status(200).json({
-    message: "Leave rejected successfully",
-    leave: leavreq,
-  });
+    res.status(200).json({
+      message: "Leave rejected successfully",
+      leave: leavreq,
+    });
 
 
 
-    
+
   } catch (error) {
 
-     console.error("Reject error:", error);
+    console.error("Reject error:", error);
     res.status(500).json({ message: "Server error" });
-    
+
   }
 
 });
@@ -797,8 +797,8 @@ router.get("/pending", async (req, res) => {
     );
     return res.status(200).json(leaves);
   } catch (error) {
-    return res.status(500).json({ 
-      message: "Error fetching pending leave requests" 
+    return res.status(500).json({
+      message: "Error fetching pending leave requests"
     });
   }
 });
@@ -819,8 +819,8 @@ router.get("/performance/all", verifyAccessToken, isAdmin, async (req, res) => {
     const performance = await Performance.find({
       date: month,
     })
-    .populate("employeeId", "name email department position")
-    .populate("reviewerId", "name department");
+      .populate("employeeId", "name email department position")
+      .populate("reviewerId", "name department");
 
     res.status(200).json({
       success: true,
@@ -868,7 +868,7 @@ router.get("/dashboard-stats", verifyAccessToken, isAdmin, async (req, res) => {
       }
     ]);
 
-    const attendanceRate = attendanceSummary.length > 0 
+    const attendanceRate = attendanceSummary.length > 0
       ? ((attendanceSummary[0].totalPresent / attendanceSummary[0].totalRecords) * 100).toFixed(1)
       : 0;
 
@@ -888,11 +888,11 @@ router.get("/dashboard-stats", verifyAccessToken, isAdmin, async (req, res) => {
       }
     ]);
 
-    const monthlyPayroll = payrollSummary.length > 0 
+    const monthlyPayroll = payrollSummary.length > 0
       ? (payrollSummary[0].totalPayroll / 100000).toFixed(1)
       : 0;
 
-    const payrollProcessed = payrollSummary.length > 0 
+    const payrollProcessed = payrollSummary.length > 0
       ? payrollSummary[0].processedCount === payrollSummary[0].totalCount
       : false;
 
@@ -909,7 +909,7 @@ router.get("/dashboard-stats", verifyAccessToken, isAdmin, async (req, res) => {
       }
     ]);
 
-    const avgPerformance = performanceSummary.length > 0 
+    const avgPerformance = performanceSummary.length > 0
       ? ((performanceSummary[0].avgScore / 5) * 100).toFixed(1)
       : 0;
 

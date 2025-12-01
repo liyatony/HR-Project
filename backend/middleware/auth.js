@@ -17,6 +17,8 @@ const generateAccessTokenPayload = (user) => ({
 
   // 🔥 Convert user → employee in token
   role: user.role === "user" ? "employee" : user.role,
+    department: user.employeeId?.department || null,
+
 
   name: (user.employeeId && user.employeeId.name) || user.name || ""
 });

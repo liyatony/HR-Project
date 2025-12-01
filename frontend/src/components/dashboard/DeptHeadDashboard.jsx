@@ -1,8 +1,8 @@
 // src/components/dashboard/DeptHeadDashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../utils/AuthContext";
-import Sidebar from "../common/Sidebar";
-import Navbar from "../common/Navbar";
+import Sidebar from "../common/DeptHeadSidebar";
+import Navbar from "../common/DepHeadNavbar";
 import axiosInstance from "../../utils/axiosInstance";
 import {
   FaUsers,

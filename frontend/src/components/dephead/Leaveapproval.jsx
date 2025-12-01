@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Sidebar from "../common/Sidebar";
-import Navbar from "../common/Navbar";
+import Sidebar from "../common/DeptHeadSidebar";
+import Navbar from "../common/DepHeadNavbar";
 import { 
   FaCalendarAlt,
   FaCheckCircle,

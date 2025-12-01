@@ -61,3 +61,19 @@
 .btn-submit-rating:hover {
   background: #4338ca;
 }
+.performance-status-badge.rated {
+  background-color: #d1fae5; /* light green */
+  color: #065f46; /* dark green */
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.performance-status-badge.notrated {
+  background-color: #fee2e2; /* light red */
+  color: #b91c1c; /* dark red */
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
