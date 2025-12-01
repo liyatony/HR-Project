@@ -38,19 +38,16 @@ const LeaveManagement = () => {
   ];
   const [leaveRequests, setLeaveRequests] = useState([]);
 
-
-  const fetchLeaves =()=>{
-     axiosInstance.get("admin/leave").then((res) => {
+  const fetchLeaves = () => {
+    axiosInstance.get("admin/leave").then((res) => {
       console.log(res.data.data);
 
       setLeaveRequests(res.data.data);
     });
-
-  }
+  };
 
   useEffect(() => {
-    fetchLeaves()
-   
+    fetchLeaves();
   }, []);
 
   function isoToDateString(iso) {
@@ -58,16 +55,19 @@ const LeaveManagement = () => {
     return d.toLocaleDateString("en-IN");
   }
 
-
-
-
-
-  const handleApprove = (employeeId, startDate, endDate, employeeName, _id,email) => {
+  const handleApprove = (
+    employeeId,
+    startDate,
+    endDate,
+    employeeName,
+    _id,
+    email
+  ) => {
     axiosInstance
       .put("admin/leave_confirm", { _id })
       .then((res) => {
         console.log(res.data.message);
-        fetchLeaves()
+        fetchLeaves();
       })
       .catch((err) => {
         console.log(err);
@@ -96,28 +96,30 @@ const LeaveManagement = () => {
     const days = getWeekdayISODates(startDate, endDate);
 
     axiosInstance
-      .post("admin/approved_leave", { employeeId, days, employeeName, leaveId ,email})
+      .post("admin/approved_leave", {
+        employeeId,
+        days,
+        employeeName,
+        leaveId,
+        email,
+      })
       .then((res) => {
         console.log(res.data.message);
-      }).catch((err)=>{
-        console.error(err)
       })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
-  const handleReject = (leaveId,name,email,startDate,endDate) => {
-
-    axiosInstance.put("admin/rejected_leave",{leaveId,name,email,startDate,endDate}).then((res)=>{
-
-    fetchLeaves();
-
-    }).catch((err)=>{
-      console.error(err)
-    })
-
-
-
-
-    
+  const handleReject = (leaveId, name, email, startDate, endDate) => {
+    axiosInstance
+      .put("admin/rejected_leave", { leaveId, name, email, startDate, endDate })
+      .then((res) => {
+        fetchLeaves();
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   // // Sample leave requests data
@@ -199,21 +201,21 @@ const LeaveManagement = () => {
     },
     {
       title: "Approved",
-      value: leaveRequests.filter(r => r.status === "approved").length,
+      value: leaveRequests.filter((r) => r.status === "approved").length,
       icon: <FaCheckCircle />,
       color: "#059669",
       bgColor: "#d1fae5",
     },
     {
       title: "Pending",
-      value: leaveRequests.filter(r => r.status === "pending").length,
+      value: leaveRequests.filter((r) => r.status === "pending").length,
       icon: <FaHourglassHalf />,
       color: "#f59e0b",
       bgColor: "#fef3c7",
     },
     {
       title: "Rejected",
-      value: leaveRequests.filter(r => r.status === "rejected").length,
+      value: leaveRequests.filter((r) => r.status === "rejected").length,
       icon: <FaTimesCircle />,
       color: "#dc2626",
       bgColor: "#fee2e2",
@@ -302,7 +304,67 @@ const LeaveManagement = () => {
                     <th>Actions</th>
                   </tr>
                 </thead>
+
                 <tbody>
+                  {leaveRequests
+                    .filter((req) => req && req.employeeId) // remove null items
+                    .map((request) => (
+                      <tr key={request._id || Math.random()}>
+                        <td className="emp-id-cell">
+                          {request.employeeId?._id || "N/A"}
+                        </td>
+
+                        <td className="emp-name-cell">
+                          {request.employeeId?.name || "Unknown"}
+                        </td>
+
+                        <td>{request.employeeId?.department || "Unknown"}</td>
+
+                        <td className="leave-type-cell">{request.leaveType}</td>
+
+                        <td className="date-cell">
+                          {isoToDateString(request.startDate)}
+                        </td>
+
+                        <td className="date-cell">
+                          {isoToDateString(request.endDate)}
+                        </td>
+
+                        <td className="days-cell">
+                          {request.numberOfDays} days
+                        </td>
+
+                        <td className="date-cell">
+                          {isoToDateString(request.appliedDate)}
+                        </td>
+
+                        <td>
+                          <span
+                            className={`leave-status-badge ${request.status?.toLowerCase()}`}
+                          >
+                            {request.status}
+                          </span>
+                        </td>
+
+                        <td>
+                          <div className="action-buttons">
+                            <button
+                              className="btn-action view"
+                              title="View Details"
+                              onClick={() => {
+                                setLeaveApprove(true);
+                                setSelectedLeave(request);
+                              }}
+                            >
+                              <FaEye />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+
+                {/* <tbody>
                   {leaveRequests.map((request) => (
                     <tr key={request._id}>
                       <td className="emp-id-cell">{request.employeeId._id}</td>
@@ -341,27 +403,12 @@ const LeaveManagement = () => {
                             <FaEye />
                           </button>
 
-                          {/* {request.status === "pending" && (
-                            <>
-                              <button
-                                className="btn-action approve"
-                                title="Approve"
-                              >
-                                <FaCheckCircle />
-                              </button>
-                              <button
-                                className="btn-action reject"
-                                title="Reject"
-                              >
-                                <FaTimesCircle />
-                              </button>
-                            </>
-                          )} */}
+                         
                         </div>
                       </td>
                     </tr>
                   ))}
-                </tbody>
+                </tbody> */}
               </table>
             </div>
           </div>

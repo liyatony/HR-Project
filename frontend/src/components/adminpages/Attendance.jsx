@@ -217,7 +217,7 @@ const Attendance = () => {
                       </tr>
                     ) : (
                       attendanceRecords.map((record) => (
-                        <tr key={record._id}>
+                        <tr key={record?._id || Math.random() }>
                           <td className="emp-id-cell">
                             {record.employeeId?._id?.substring(0, 8) || 'N/A'}
                           </td>

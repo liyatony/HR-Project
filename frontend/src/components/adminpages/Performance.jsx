@@ -629,7 +629,7 @@ const Performance = () => {
                       <th>Employee ID</th>
                       <th>Employee Name</th>
                       <th>Department</th>
-                      <th>Task Completion</th>
+                      <th>Task Completion Rate</th>
                       <th>Attendance</th>
                       <th>Behaviour</th>
                       <th>Overall Rating</th>
@@ -644,7 +644,7 @@ const Performance = () => {
                         <td className="emp-id-cell">{record.empId}</td>
                         <td className="emp-name-cell">{record.employee}</td>
                         <td>{record.department}</td>
-                        <td className="tasks-cell">{record.taskCompletion.toFixed(1)}</td>
+                        <td className="tasks-cell">{record.taskCompletion.toFixed(1)*20}%</td>
                         <td className="tasks-cell">{record.attendance.toFixed(1)}</td>
                         <td className="tasks-cell">{record.behaviour.toFixed(1)}</td>
                         <td>
