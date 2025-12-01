@@ -63,21 +63,15 @@ const MarkAttendance = () => {
 
   // Fetch Last 7 Days Records
   const fetchRecentAttendance = async () => {
-    try {
-      const today = new Date();
-      const month = today.toISOString().substring(0, 7);
-      const res = await axiosInstance.get(
-        `/emp/my-attendance-records?month=${month}`
-      );
-
-      if (res.data.success) {
-        const last7 = res.data.data.slice(0, 7);
-        setRecentRecords(last7);
-      }
-    } catch (error) {
-      console.error("Failed to fetch recent attendance:", error);
+  try {
+    const res = await axiosInstance.get("/emp/my-last-7-days");
+    if (res.data.success) {
+      setRecentRecords(res.data.data);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch recent attendance:", error);
+  }
+};
 
   // Handle Check-In
   const handleCheckIn = async () => {

@@ -7,7 +7,7 @@ const Payroll = require("../models/payroll_model");
 const Employee = require("../models/employee_model");
 const Leave = require("../models/Leave_model");
 const Holiday = require("../models/Holiday_model");
-const AttendanceCorrection = require("../models/attendance_correction_model"); // <-- IMPORTANT FIX
+const AttendanceCorrection = require("../models/attendance_correction_model"); 
 
 const { verifyAccessToken } = require("../middleware/auth");
 
@@ -114,19 +114,15 @@ router.get("/my-attendance", verifyAccessToken, async (req, res) => {
 router.get("/my-attendance-records", verifyAccessToken, async (req, res) => {
   try {
     const employeeId = getObjectId(req.user.employeeId);
-
     const filter = { employeeId };
 
-    if (req.query.month) {
-      const start = new Date(`${req.query.month}-01`);
-      const end = new Date(start);
-      end.setMonth(end.getMonth() + 1);
+  if (req.query.month && req.query.month !== "all") {
+  const start = new Date(`${req.query.month}-01`);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 1);
 
-      filter.date = {
-        $gte: start.toISOString().split("T")[0],
-        $lte: end.toISOString().split("T")[0],
-      };
-    }
+  filter.createdAt = { $gte: start, $lt: end };
+}
 
     const data = await Attendance.find(filter).sort({ date: -1 });
 
@@ -135,6 +131,40 @@ router.get("/my-attendance-records", verifyAccessToken, async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to fetch records" });
   }
 });
+
+/* -------------------------------------------------------
+   GET: Last 7 Days Attendance
+--------------------------------------------------------*/
+router.get("/my-last-7-days", verifyAccessToken, async (req, res) => {
+  try {
+    const employeeId = getObjectId(req.user.employeeId);
+
+    const records = await Attendance.find({ employeeId })
+      .sort({ date: -1 })
+      .limit(7);
+
+    res.json({ success: true, data: records });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to fetch last 7 days" });
+  }
+});
+/* -------------------------------------------------------
+   GET: Last 7 Days Attendance
+--------------------------------------------------------*/
+router.get("/my-last-7-days", verifyAccessToken, async (req, res) => {
+  try {
+    const employeeId = getObjectId(req.user.employeeId);
+
+    const records = await Attendance.find({ employeeId })
+      .sort({ date: -1 })
+      .limit(7);
+
+    res.json({ success: true, data: records });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to fetch last 7 days" });
+  }
+});
+
 
 /* -------------------------------------------------------
    POST: Mark Check-In
@@ -193,52 +223,60 @@ router.put("/mark-attendance/:id", verifyAccessToken, async (req, res) => {
   }
 });
 
-/* -------------------------------------------------------
-   POST: Attendance Correction Request
---------------------------------------------------------*/
 router.post("/my-attendance-correction", verifyAccessToken, async (req, res) => {
   try {
-    const { attendanceId, reason } = req.body;
+    const { attendanceId, reason, requestedCheckIn, requestedCheckOut, requestedStatus } = req.body;
+    const employeeId = getObjectId(req.user.employeeId);
 
-    if (!attendanceId || !reason?.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Attendance ID & reason required",
-      });
+    // Validation
+    if (!attendanceId || !reason.trim()) {
+      return res.status(400).json({ success: false, message: "Attendance ID & reason required" });
     }
 
-    const attendance = await Attendance.findById(attendanceId);
+    // Fetch attendance record
+    const attendance = await Attendance.findOne({ _id: attendanceId, employeeId });
     if (!attendance) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Attendance record not found" });
+      return res.status(404).json({ success: false, message: "Attendance record not found" });
     }
 
-    // Prevent duplicate request
+    // Prevent duplicate pending request
     const exists = await AttendanceCorrection.findOne({
       attendanceId,
+      employeeId,
       status: "pending",
     });
 
     if (exists) {
-      return res.status(400).json({
-        success: false,
-        message: "Correction already requested for this date",
-      });
+      return res.status(400).json({ success: false, message: "A correction request is already pending for this date." });
     }
 
+    // Save correction request
     await AttendanceCorrection.create({
-      employeeId: req.user.employeeId,
+      employeeId,
       attendanceId,
       date: attendance.date,
+
+      // OLD VALUES (before correction)
+      previousCheckIn: attendance.checkIn || "",
+      previousCheckOut: attendance.checkOut || "",
+      previousStatus: attendance.status || "absent",
+
+      // REQUESTED NEW VALUES
+      requestedCheckIn,
+      requestedCheckOut,
+      requestedStatus,
+
       reason,
     });
 
-    res.json({ success: true, message: "Correction request submitted" });
-  } catch {
-    res.status(500).json({ success: false, message: "Request failed" });
+    res.json({ success: true, message: "Correction request submitted successfully." });
+
+  } catch (err) {
+    console.error("Correction Request Error:", err);
+    res.status(500).json({ success: false, message: "Failed to submit correction request" });
   }
 });
+
 
 /* -------------------------------------------------------
    Dashboard Summary

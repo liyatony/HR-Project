@@ -27,8 +27,8 @@ const AttendanceHistory = () => {
   const [stats, setStats] = useState({ present: 0, absent: 0, leaves: 0 });
   const [loading, setLoading] = useState(true);
 
-  // Correction popup
-  const [correctionModal, setCorrectionModal] = useState(false);
+//correction
+  const [correctionModal, setCorrectionModal] = useState(false); 
   const [correctionReason, setCorrectionReason] = useState("");
   const [selectedAttendanceId, setSelectedAttendanceId] = useState("");
 
@@ -42,19 +42,20 @@ const AttendanceHistory = () => {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  useEffect(() => {
-    const month = new Date().toISOString().substring(0, 7);
-    setSelectedMonth(month);
-    fetchRecords(month);
-  }, []);
+   useEffect(() => {
+  setSelectedMonth("all");    
+  fetchRecords("all");
+}, []);
+
 
   const fetchRecords = async (month) => {
     try {
       setLoading(true);
 
-      const res = await axiosInstance.get(
-        `/emp/my-attendance-records?month=${month}`
-      );
+        const res = await axiosInstance.get(
+  `/emp/my-attendance-records?month=${month || "all"}`
+);
+
 
       if (res.data.success) {
         setAttendance(res.data.data);
@@ -76,7 +77,7 @@ const AttendanceHistory = () => {
     });
   };
 
-  // Calculate hours
+  //calculate hour
   const calculateHours = (checkIn, checkOut) => {
     if (!checkIn || !checkOut) return "--";
     const [h1, m1] = checkIn.split(":").map(Number);
@@ -85,7 +86,7 @@ const AttendanceHistory = () => {
     return `${Math.floor(total / 60)}h ${total % 60}m`;
   };
 
-  // Filtering and sorting
+  // sorting and filtering
   useEffect(() => {
     let temp = [...attendance];
 
@@ -125,7 +126,7 @@ const AttendanceHistory = () => {
     return sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />;
   };
 
-  // SIMPLE correction popup
+  // correction
   const openCorrection = (recordId) => {
     setSelectedAttendanceId(recordId);
     setCorrectionReason("");
