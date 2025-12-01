@@ -82,7 +82,7 @@ const getMenuItems = () => {
       <div className="sidebar-header">
         <div className="logo-container">
           <div className="logo-icon">HR</div>
-          <h2 className="logo-text">HR System</h2>
+          <h2 className="logo-text">TECHNEXIA</h2>
         </div>
         <button className="close-sidebar" onClick={toggleSidebar}>
           <FaTimes />

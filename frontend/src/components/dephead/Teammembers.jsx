@@ -28,8 +28,8 @@ import {
   PersonAdd,
   Visibility,
 } from "@mui/icons-material";
-import Sidebar from "../common/Sidebar";
-import Navbar from "../common/Navbar";
+import Sidebar from "../common/DeptHeadSidebar";
+import Navbar from "../common/DepHeadNavbar";
 import Loading from "../common/Loading";
 import Add_employee from "../employee/Add_employee";
 import axiosInstance from "../../utils/axiosInstance";

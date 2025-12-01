@@ -1,5 +1,5 @@
-import Sidebar from "../common/Sidebar";
-import Navbar from "../common/Navbar";
+import Sidebar from "../common/DeptHeadSidebar";
+import Navbar from "../common/DepHeadNavbar";
 import { 
   FaStar, 
   FaTasks, 
@@ -19,113 +19,7 @@ import { useAuth } from "../../utils/AuthContext";   // to get logged-in dept he
 
 
 
-// ⭐ Rating Section Component
-// const RatingSection = ({ performanceData }) => {
-//   const [selectedEmployee, setSelectedEmployee] = useState("");
-//   const [punctuality, setPunctuality] = useState(0);
-//   const [teamwork, setTeamwork] = useState(0);
-//   const [quality, setQuality] = useState(0);
-//   const [feedback, setFeedback] = useState("");
 
-//   const labels = {
-//     0.5: "Useless",
-//     1: "Useless+",
-//     1.5: "Poor",
-//     2: "Poor+",
-//     2.5: "Ok",
-//     3: "Ok+",
-//     3.5: "Good",
-//     4: "Good+",
-//     4.5: "Excellent",
-//     5: "Excellent+",
-//   };
-
-//   const getLabelText = (value) =>
-//     `${value} Star${value !== 1 ? "s" : ""}, ${labels[value]}`;
-
-//   const handleSubmit = () => {
-//     alert("Rating submitted successfully!");
-//     console.log({
-//       selectedEmployee,
-//       punctuality,
-//       teamwork,
-//       quality,
-//       feedback,
-//     });
-//   };
-
-//   return (
-//     <div className="rate-employee-card">
-//       <h3 className="rate-title">Rate Employee</h3>
-
-//       {/* Select Employee */}
-//       <label className="form-label">Select Employee:</label>
-//       <select
-//         className="rate-select"
-//         value={selectedEmployee}
-//         onChange={(e) => setSelectedEmployee(e.target.value)}
-//       >
-//         <option value="">Choose employee</option>
-//         {performanceData.map((emp) => (
-//           <option key={emp.id} value={emp.employee}>
-//             {emp.employee} ({emp.department})
-//           </option>
-//         ))}
-//       </select>
-
-//       {/* KPI Ratings */}
-//       <div className="kpi-group">
-//         <div className="kpi-item">
-//           <label>Punctuality</label>
-//           <Rating
-//             name="punctuality"
-//             value={punctuality}
-//             precision={0.5}
-//             getLabelText={getLabelText}
-//             onChange={(e, val) => setPunctuality(val)}
-//           />
-//         </div>
-
-//         <div className="kpi-item">
-//           <label>Teamwork</label>
-//           <Rating
-//             name="teamwork"
-//             value={teamwork}
-//             precision={0.5}
-//             getLabelText={getLabelText}
-//             onChange={(e, val) => setTeamwork(val)}
-//           />
-//         </div>
-
-//         <div className="kpi-item">
-//           <label>Quality</label>
-//           <Rating
-//             name="quality"
-//             value={quality}
-//             precision={0.5}
-//             getLabelText={getLabelText}
-//             onChange={(e, val) => setQuality(val)}
-//           />
-//         </div>
-//       </div>
-
-//       {/* Feedback */}
-//       <label className="form-label">Feedback</label>
-//       <textarea
-//         className="feedback-box"
-//         placeholder="Write feedback here..."
-//         value={feedback}
-//         onChange={(e) => setFeedback(e.target.value)}
-//       />
-
-//       {/* Submit Button */}
-//       <button className="btn-submit-rating" onClick={handleSubmit}>
-//         Submit Rating
-//       </button>
-//     </div>
-//   );
-// };
-// ⭐ Updated Rating Section Component (Fully Working with Hover Labels)
 const RatingSection = ({ performanceData }) => {
   const { user } = useAuth();
 
@@ -158,6 +52,19 @@ const RatingSection = ({ performanceData }) => {
 
   const getLabelText = (value) =>
     `${value} Star${value !== 1 ? "s" : ""}, ${labels[value]}`;
+
+//✅ NEW FUNCTION: Fetch Dept Head’s Performance
+const fetchTeamPerformance = async (month) => {
+  try {
+    const res = await axiosInstance.get(`/dept/performance/all?month=${month}`);
+
+    return res.data.data; // array of performance docs
+  } catch (err) {
+    console.error("Error fetching performance:", err);
+    return [];
+  }
+};
+
 
   // const handleSubmit = () => {
   //   alert("Rating submitted successfully!");
@@ -263,68 +170,67 @@ const handleSubmit = async () => {
       {/* KPI Ratings */}
       <div className="kpi-group">
 
-        {/* ⭐ Punctuality */}
-        <div className="kpi-item">
-          <label>Punctuality</label>
-          <div className="rating-line">
-            <Rating
-              name="punctuality"
-              value={punctuality}
-              precision={0.5}
-              getLabelText={getLabelText}
-              onChange={(event, newValue) => setPunctuality(newValue || 0)}
+       
+        {/* ⭐ Task Completion */}
+<div className="kpi-item">
+  <label>Task Completion Rate</label>
+  <div className="rating-line">
+    <Rating
+      name="taskCompletion"
+      value={punctuality}
+      precision={0.5}
+      getLabelText={getLabelText}
+      onChange={(event, newValue) => setPunctuality(newValue || 0)}
+      onChangeActive={(event, newHover) => setHoverPunctuality(newHover)}
+    />
+    {punctuality !== null && (
+      <span className="rating-label">
+        {labels[hoverPunctuality !== -1 ? hoverPunctuality : punctuality]}
+      </span>
+    )}
+  </div>
+</div>
 
-              onChangeActive={(event, newHover) => setHoverPunctuality(newHover)}
-            />
-            {punctuality !== null && (
-              <span className="rating-label">
-                {labels[hoverPunctuality !== -1 ? hoverPunctuality : punctuality]}
-              </span>
-            )}
-          </div>
-        </div>
+{/* ⭐ Attendance */}
+<div className="kpi-item">
+  <label>Attendance</label>
+  <div className="rating-line">
+    <Rating
+      name="attendance"
+      value={teamwork}
+      precision={0.5}
+      getLabelText={getLabelText}
+      onChange={(event, newValue) => setTeamwork(newValue || 0)}
+      onChangeActive={(event, newHover) => setHoverTeamwork(newHover)}
+    />
+    {teamwork !== null && (
+      <span className="rating-label">
+        {labels[hoverTeamwork !== -1 ? hoverTeamwork : teamwork]}
+      </span>
+    )}
+  </div>
+</div>
 
-        {/* ⭐ Teamwork */}
-        <div className="kpi-item">
-          <label>Teamwork</label>
-          <div className="rating-line">
-            <Rating
-              name="teamwork"
-              value={teamwork}
-              precision={0.5}
-              getLabelText={getLabelText}
-              onChange={(event, newValue) => setTeamwork(newValue || 0)}
+{/* ⭐ Behaviour */}
+<div className="kpi-item">
+  <label>Behaviour</label>
+  <div className="rating-line">
+    <Rating
+      name="behaviour"
+      value={quality}
+      precision={0.5}
+      getLabelText={getLabelText}
+      onChange={(event, newValue) => setQuality(newValue || 0)}
+      onChangeActive={(event, newHover) => setHoverQuality(newHover)}
+    />
+    {quality !== null && (
+      <span className="rating-label">
+        {labels[hoverQuality !== -1 ? hoverQuality : quality]}
+      </span>
+    )}
+  </div>
+</div>
 
-              onChangeActive={(event, newHover) => setHoverTeamwork(newHover)}
-            />
-            {teamwork !== null && (
-              <span className="rating-label">
-                {labels[hoverTeamwork !== -1 ? hoverTeamwork : teamwork]}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* ⭐ Quality */}
-        <div className="kpi-item">
-          <label>Quality</label>
-          <div className="rating-line">
-            <Rating
-              name="quality"
-              value={quality}
-              precision={0.5}
-              getLabelText={getLabelText}
-              onChange={(event, newValue) => setQuality(newValue || 0)}
-
-              onChangeActive={(event, newHover) => setHoverQuality(newHover)}
-            />
-            {quality !== null && (
-              <span className="rating-label">
-                {labels[hoverQuality !== -1 ? hoverQuality : quality]}
-              </span>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Feedback */}
@@ -356,144 +262,118 @@ const Teamperformance = () => {
 
   const departments = ["HR", "Engineering", "Marketing", "Sales", "Finance"];
 
-  // Sample performance data
-  // const performanceData = [
-  //   {
-  //     id: 1,
-  //     employee: "John Doe",
-  //     empId: "EMP001",
-  //     department: "Engineering",
-  //     tasksAssigned: 45,
-  //     tasksCompleted: 42,
-  //     rating: 4.5,
-  //     lastReview: "2024-12-15",
-  //     status: "Excellent",
-  //     completionRate: "93.3%"
-  //   },
-  //   {
-  //     id: 2,
-  //     employee: "Sarah Johnson",
-  //     empId: "EMP002",
-  //     department: "Marketing",
-  //     tasksAssigned: 38,
-  //     tasksCompleted: 36,
-  //     rating: 4.2,
-  //     lastReview: "2024-12-20",
-  //     status: "Good",
-  //     completionRate: "94.7%"
-  //   },
-  //   {
-  //     id: 3,
-  //     employee: "Mike Chen",
-  //     empId: "EMP003",
-  //     department: "Engineering",
-  //     tasksAssigned: 50,
-  //     tasksCompleted: 44,
-  //     rating: 4.0,
-  //     lastReview: "2024-12-10",
-  //     status: "Good",
-  //     completionRate: "88.0%"
-  //   },
-  //   {
-  //     id: 4,
-  //     employee: "Lisa Anderson",
-  //     empId: "EMP004",
-  //     department: "HR",
-  //     tasksAssigned: 32,
-  //     tasksCompleted: 30,
-  //     rating: 4.7,
-  //     lastReview: "2025-01-05",
-  //     status: "Excellent",
-  //     completionRate: "93.8%"
-  //   },
-  //   {
-  //     id: 5,
-  //     employee: "David Brown",
-  //     empId: "EMP005",
-  //     department: "Sales",
-  //     tasksAssigned: 40,
-  //     tasksCompleted: 35,
-  //     rating: 3.8,
-  //     lastReview: "2024-12-18",
-  //     status: "Average",
-  //     completionRate: "87.5%"
-  //   },
-  //   {
-  //     id: 6,
-  //     employee: "Emma Wilson",
-  //     empId: "EMP006",
-  //     department: "Finance",
-  //     tasksAssigned: 35,
-  //     tasksCompleted: 34,
-  //     rating: 4.6,
-  //     lastReview: "2025-01-02",
-  //     status: "Excellent",
-  //     completionRate: "97.1%"
-  //   },
-  // ];
+
   const [performanceData, setPerformanceData] = useState([]);
 const { user } = useAuth();
+// useEffect(() => {
+//   const fetchTeam = async () => {
+//     try {
+//       const res = await axiosInstance.get("/dept/my-team");
+
+//       console.log("Team members:", res.data.data);
+
+//       const formatted = res.data.data.map((emp, i) => ({
+//         id: i + 1,
+//         employee: emp.name,
+//         empId: emp._id,
+//         department: emp.department,
+//         AttendanceRate: 0,
+//         BehaviourRate: 0,
+//         rating: 0,
+//         lastReview: "-",
+//         status: "Not Rated",
+//         completionRate: "0%",
+//       }));
+
+//       setPerformanceData(formatted);
+//     } catch (err) {
+//       console.error("Error fetching team:", err);
+//     }
+//   };
+
+//   fetchTeam();
+// }, []);
 useEffect(() => {
-  const fetchTeam = async () => {
+  const loadData = async () => {
     try {
-      const res = await axiosInstance.get("/dept/my-team");
+      // 1️⃣ Fetch team list
+      const teamRes = await axiosInstance.get("/dept/my-team");
+      const team = teamRes.data.data;
 
-      console.log("Team members:", res.data.data);
+      // 2️⃣ Fetch performance for this month
+      const month = new Date().toISOString().slice(0, 7);
+      const perfRes = await axiosInstance.get(`/dept/performance/all?month=${month}`);
+      const perf = perfRes.data.data; // array of performance docs
 
-      const formatted = res.data.data.map((emp, i) => ({
-        id: i + 1,
-        employee: emp.name,
-        empId: emp._id,
-        department: emp.department,
-        tasksAssigned: 0,
-        tasksCompleted: 0,
-        rating: 0,
-        lastReview: "-",
-        status: "Not Rated",
-        completionRate: "0%",
-      }));
+      console.log("PERFORMANCE FROM BACKEND:", perf);
 
-      setPerformanceData(formatted);
+      // 3️⃣ Merge team + performance
+      const merged = team.map((emp, index) => {
+        const p = perf.find((x) => x.employeeId._id === emp._id);
+
+        return {
+          id: index + 1,
+          employee: emp.name,
+          empId: emp._id,
+          department: emp.department,
+          AttendanceRate: p ? p.ratings?.attendance || 0 : 0,
+          BehaviourRate: p ? p.ratings?.behaviour || 0 : 0,
+
+          // ⭐ VALUES FROM DATABASE
+          rating: p ? p.score : 0,
+          lastReview: p ? p.updatedAt?.split("T")[0] : "-",
+          status: p ? "Rated" : "Not Rated",
+
+          // completionRate: p ? p.ratings?.taskCompletion || 0 : 0,
+          completionRate: p ? ((p.ratings?.taskCompletion || 0) * 20) + "%" : "0%",
+
+
+        };
+      });
+
+      console.log("MERGED DATA:", merged);
+      setPerformanceData(merged);
     } catch (err) {
-      console.error("Error fetching team:", err);
+      console.error("Error loading data:", err);
     }
   };
 
-  fetchTeam();
+  loadData();
 }, []);
 
 
 
-  const statsData = [
-    { 
-      title: "Avg Performance", 
-      value: "4.3/5.0", 
-      icon: <FaStar />, 
-      color: "#f59e0b",
-      bgColor: "#fef3c7"
-    },
-    { 
-      title: "Tasks Completed", 
-      value: "221/240", 
-      icon: <FaTasks />, 
-      color: "#059669",
-      bgColor: "#d1fae5"
-    },
-    { 
-      title: "Top Performers", 
-      value: "18", 
-      icon: <FaTrophy />, 
-      color: "#dc2626",
-      bgColor: "#fee2e2"
-    },
-    { 
-      title: "Avg Completion", 
-      value: "92.1%", 
-      icon: <FaChartLine />, 
-      color: "#4f46e5",
-      bgColor: "#e0e7ff"
-    },
-  ];
+
+  // const statsData = [
+  //   { 
+  //     title: "Avg Performance", 
+  //     value: "4.3/5.0", 
+  //     icon: <FaStar />, 
+  //     color: "#f59e0b",
+  //     bgColor: "#fef3c7"
+  //   },
+  //   { 
+  //     title: "Tasks Completed", 
+  //     value: "221/240", 
+  //     icon: <FaTasks />, 
+  //     color: "#059669",
+  //     bgColor: "#d1fae5"
+  //   },
+  //   { 
+  //     title: "Top Performers", 
+  //     value: "18", 
+  //     icon: <FaTrophy />, 
+  //     color: "#dc2626",
+  //     bgColor: "#fee2e2"
+  //   },
+  //   { 
+  //     title: "Avg Completion", 
+  //     value: "92.1%", 
+  //     icon: <FaChartLine />, 
+  //     color: "#4f46e5",
+  //     bgColor: "#e0e7ff"
+  //   },
+  // ];
 
   const handleExportReport = () => {
     console.log("Exporting performance report...");
@@ -542,7 +422,7 @@ useEffect(() => {
           </div> */}
 
           {/* Filters Section */}
-          <div className="performance-filters-card">
+          {/* <div className="performance-filters-card">
             <div className="filters-header">
               <h3 className="filters-title">
                 <FaFilter /> Filter Performance Records
@@ -603,7 +483,7 @@ useEffect(() => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Performance Table */}
           <div className="performance-table-card">
@@ -621,9 +501,9 @@ useEffect(() => {
                     <th>Employee ID</th>
                     <th>Employee Name</th>
                     <th>Department</th>
-                    <th>Tasks Assigned</th>
-                    <th>Tasks Completed</th>
-                    <th>Completion Rate</th>
+                    <th>Task Completion Rate</th>
+                    <th>Attendance</th>
+                    <th>Behaviour</th>
                     <th>Rating</th>
                     <th>Last Review</th>
                     <th>Status</th>
@@ -635,9 +515,10 @@ useEffect(() => {
                       <td className="emp-id-cell">{record.empId}</td>
                       <td className="emp-name-cell">{record.employee}</td>
                       <td>{record.department}</td>
-                      <td className="tasks-cell">{record.tasksAssigned}</td>
-                      <td className="tasks-cell completed">{record.tasksCompleted}</td>
                       <td className="completion-cell">{record.completionRate}</td>
+                      <td className="tasks-cell">{record.AttendanceRate}</td>
+                      <td className="tasks-cell completed">{record.BehaviourRate}</td>
+                      
                       <td>
                         <div className="rating-box">
                           <FaStar className="star-icon" />
@@ -646,7 +527,9 @@ useEffect(() => {
                       </td>
                       <td className="date-cell">{record.lastReview}</td>
                       <td>
-                        <span className={`performance-status-badge ${record.status.toLowerCase()}`}>
+                        {/* <span className={`performance-status-badge ${record.status.toLowerCase()}`}> */}
+                        <span className={`performance-status-badge ${record.status.replace(" ", "").toLowerCase()}`}>
+
                           {record.status}
                         </span>
                       </td>
