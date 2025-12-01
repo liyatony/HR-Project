@@ -59,9 +59,9 @@ const MyAttendance = () => {
         />
 
         <main className="content-area">
-          {/* Summary Cards */}
+         
           <div className="stats-grid">
-            {/* Present Days */}
+         
             <div className="stat-card">
               <div className="stat-card-body">
                 <div className="stat-info">

@@ -44,22 +44,19 @@ const MarkAttendance = () => {
 
   // Fetch Today Attendance
   const fetchTodayAttendance = async () => {
-    try {
-      const today = new Date().toISOString().split("T")[0];
-      const month = today.substring(0, 7);
+    
+  try {
+    const res = await axiosInstance.get("/emp/my-today-attendance");
 
-      const res = await axiosInstance.get(
-        `/emp/my-attendance-records?month=${month}`
-      );
-
-      if (res.data.success) {
-        const todayRecord = res.data.data.find((r) => r.date === today);
-        setTodayAttendance(todayRecord || null);
-      }
-    } catch (error) {
-      console.error("Failed to fetch today's attendance:", error);
+    if (res.data.success) {
+      setTodayAttendance(res.data.data);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch today's attendance:", error);
+  }
+};
+
+
 
   // Fetch Last 7 Days Records
   const fetchRecentAttendance = async () => {
@@ -73,7 +70,7 @@ const MarkAttendance = () => {
   }
 };
 
-  // Handle Check-In
+  //  CheckIn
   const handleCheckIn = async () => {
     try {
       setLoading(true);
@@ -108,7 +105,7 @@ const MarkAttendance = () => {
     }
   };
 
-  // Handle Check-Out
+  //  CheckOut
   const handleCheckOut = async () => {
     if (!todayAttendance) return;
 
@@ -201,11 +198,7 @@ const MarkAttendance = () => {
       <EmployeeSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <div className="main-wrapper">
-        {/* <Navbar
-          toggleSidebar={toggleSidebar}
-          pageTitle="Mark Attendance"
-          pageSubtitle="Check in and check out for today"
-        /> */}
+        
 
           <header className="top-navbar">
                   <div className="navbar-left">
@@ -235,7 +228,7 @@ const MarkAttendance = () => {
                 </header>
 
         <main className="content-area">
-          {/* Alert Message */}
+         
           {message.text && (
             <div
               style={{
@@ -254,7 +247,7 @@ const MarkAttendance = () => {
             </div>
           )}
 
-          {/* Clock Section */}
+       
           <div
             style={{
               background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
@@ -279,7 +272,7 @@ const MarkAttendance = () => {
             </p>
           </div>
 
-          {/* Stats Cards */}
+          
           <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-card-body">
@@ -344,7 +337,7 @@ const MarkAttendance = () => {
             </div>
           </div>
 
-          {/* Check-In / Check-Out Buttons */}
+        
           <div
             style={{
               display: "flex",
@@ -397,8 +390,8 @@ const MarkAttendance = () => {
               <FaClock /> Check Out
             </button>
           </div>
-
-          {/* Table (Last 7 Days) */}
+          
+        
           <div
             className="attendance-table-card"
             style={{ marginTop: "3rem", padding: "1rem" }}

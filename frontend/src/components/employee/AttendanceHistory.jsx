@@ -173,7 +173,7 @@ const AttendanceHistory = () => {
       <EmployeeSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <div className="main-wrapper">
-        {/* <Navbar toggleSidebar={toggleSidebar} pageTitle="Attendance History" pageSubtitle="View your complete attendance records" /> */}
+        
 
   <header className="top-navbar">
           <div className="navbar-left">
@@ -232,7 +232,7 @@ const AttendanceHistory = () => {
             />
           </div>
 
-          {/* Stats */}
+       
           <div className="stats-grid" style={{ marginBottom: "2rem" }}>
             <div className="stat-card">
               <div className="stat-card-body">
@@ -271,7 +271,7 @@ const AttendanceHistory = () => {
             </div>
           </div>
 
-          {/* Table */}
+          
           <div
             style={{
               background: "white",

@@ -11,9 +11,6 @@ const AttendanceCorrection = require("../models/attendance_correction_model");
 
 const { verifyAccessToken } = require("../middleware/auth");
 
-/* -------------------------------------------------------
-   Convert received employeeId to ObjectId safely
---------------------------------------------------------*/
 function getObjectId(id) {
   try {
     if (typeof id === "object" && id._id)
@@ -24,9 +21,24 @@ function getObjectId(id) {
   }
 }
 
-/* -------------------------------------------------------
-   Ensure Today Attendance Exists
---------------------------------------------------------*/
+
+router.get("/my-today-attendance", verifyAccessToken, async (req, res) => {
+  try {
+    const employeeId = getObjectId(req.user.employeeId);
+    const employeeName = req.user.name;
+
+    const record = await ensureTodayAttendance(employeeId, employeeName);
+
+    res.json({ success: true, data: record });
+  } catch (err) {
+    console.error("Today Attendance Error:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch today" });
+  }
+});
+
+
+   // Today Attendance Exists
+
 async function ensureTodayAttendance(employeeId, employeeName) {
   const today = new Date().toISOString().split("T")[0];
 
@@ -73,9 +85,8 @@ async function ensureTodayAttendance(employeeId, employeeName) {
   });
 }
 
-/* -------------------------------------------------------
-   My Attendance Summary (Dashboard)
---------------------------------------------------------*/
+   //my attendance summary
+
 router.get("/my-attendance", verifyAccessToken, async (req, res) => {
   try {
     const employeeId = getObjectId(req.user.employeeId);
@@ -108,9 +119,9 @@ router.get("/my-attendance", verifyAccessToken, async (req, res) => {
   }
 });
 
-/* -------------------------------------------------------
-   GET: Attendance Records (Filter By Month)
---------------------------------------------------------*/
+
+   //GET: Attendance Records
+
 router.get("/my-attendance-records", verifyAccessToken, async (req, res) => {
   try {
     const employeeId = getObjectId(req.user.employeeId);
@@ -132,70 +143,160 @@ router.get("/my-attendance-records", verifyAccessToken, async (req, res) => {
   }
 });
 
-/* -------------------------------------------------------
-   GET: Last 7 Days Attendance
---------------------------------------------------------*/
+
+   //GET: Last 7 Days Attendance
+
 router.get("/my-last-7-days", verifyAccessToken, async (req, res) => {
   try {
     const employeeId = getObjectId(req.user.employeeId);
+    const employeeName = req.user.name;
 
-    const records = await Attendance.find({ employeeId })
-      .sort({ date: -1 })
-      .limit(7);
+    const results = [];
 
-    res.json({ success: true, data: records });
-  } catch {
-    res.status(500).json({ success: false, message: "Failed to fetch last 7 days" });
+    // Always use LOCAL date (prevents timezone duplicates)
+    function formatLocalDate(dateObj) {
+      dateObj.setHours(0, 0, 0, 0);
+      return dateObj.toLocaleDateString("en-CA"); // YYYY-MM-DD
+    }
+
+    const today = new Date();
+
+    for (let i = 0; i < 7; i++) {
+      const dateObj = new Date(today);
+      dateObj.setDate(today.getDate() - i);
+
+      const date = formatLocalDate(dateObj);
+
+      // STEP 1: Try exact match
+      let record = await Attendance.findOne({ employeeId, date });
+
+      // STEP 2: Try regex match (fixes duplicate creation issue)
+      if (!record) {
+        record = await Attendance.findOne({
+          employeeId,
+          date: { $regex: new RegExp(date) },
+        });
+      }
+
+      // STEP 3: If still no record → create ABSENT/LEAVE/HOLIDAY
+      if (!record) {
+        // Holiday
+        const holiday = await Holiday.findOne({ date });
+        if (holiday) {
+          record = await Attendance.create({
+            employeeId,
+            employeeName,
+            date,
+            status: "leave",
+            isHoliday: true,
+            holidayName: holiday.name,
+            checkIn: "",
+            checkOut: "",
+            totalHours: 0,
+          });
+        } else {
+          // Approved Leave
+          const leaveApplied = await Leave.findOne({
+            employeeId,
+            status: "approved",
+            startDate: { $lte: date },
+            endDate: { $gte: date },
+          });
+
+          if (leaveApplied) {
+            record = await Attendance.create({
+              employeeId,
+              employeeName,
+              date,
+              status: "leave",
+              leaveId: leaveApplied._id,
+              checkIn: "",
+              checkOut: "",
+              totalHours: 0,
+            });
+          } else {
+            // Default: ABSENT
+            record = await Attendance.create({
+              employeeId,
+              employeeName,
+              date,
+              status: "absent",
+              checkIn: "",
+              checkOut: "",
+              totalHours: 0,
+            });
+          }
+        }
+      }
+
+      results.push(record);
+    }
+
+    results.sort((a, b) => (a.date < b.date ? 1 : -1));
+
+    res.json({ success: true, data: results });
+  } catch (error) {
+    console.error("Error last 7 days:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch last 7 days",
+    });
   }
 });
-/* -------------------------------------------------------
-   GET: Last 7 Days Attendance
---------------------------------------------------------*/
-router.get("/my-last-7-days", verifyAccessToken, async (req, res) => {
-  try {
-    const employeeId = getObjectId(req.user.employeeId);
-
-    const records = await Attendance.find({ employeeId })
-      .sort({ date: -1 })
-      .limit(7);
-
-    res.json({ success: true, data: records });
-  } catch {
-    res.status(500).json({ success: false, message: "Failed to fetch last 7 days" });
-  }
-});
 
 
-/* -------------------------------------------------------
-   POST: Mark Check-In
---------------------------------------------------------*/
+//mark check in
 router.post("/mark-attendance", verifyAccessToken, async (req, res) => {
   try {
     const employeeName = req.user.name;
     const employeeId = getObjectId(req.user.employeeId);
-    const { date, checkIn } = req.body;
 
-    let record = await Attendance.findOne({ employeeId, date });
+    // Always use today's date (not req.body.date)
+    const today = new Date().toISOString().split("T")[0];
 
-    if (!record)
+    // Fetch or auto-create Absent/Leave/Holiday attendance
+    let record = await Attendance.findOne({ employeeId, date: today });
+
+    if (!record) {
       record = await ensureTodayAttendance(employeeId, employeeName);
+    }
 
-    if (record.checkIn)
-      return res.status(400).json({ success: false, message: "Already checked in" });
+    // Already checked in
+    if (record.checkIn && record.checkIn !== "") {
+      return res.status(400).json({
+        success: false,
+        message: "Already checked in",
+      });
+    }
 
-    record.checkIn = checkIn;
+    // Get current time
+    const now = new Date();
+    const checkInTime = now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    // Update record
+    record.checkIn = checkInTime;
     record.status = "present";
+
     await record.save();
 
-    res.json({ success: true, message: "Check-in successful", data: record });
-  } catch {
+    res.json({
+      success: true,
+      message: "Check-in successful",
+      data: record,
+    });
+
+  } catch (err) {
+    console.error("Check-in error:", err);
     res.status(500).json({ success: false, message: "Check-in failed" });
   }
 });
 
-/* -------------------------------------------------------
-   PUT: Mark Check-Out
---------------------------------------------------------*/
+
+//mark checkout
 router.put("/mark-attendance/:id", verifyAccessToken, async (req, res) => {
   try {
     const { checkOut } = req.body;
@@ -256,12 +357,10 @@ router.post("/my-attendance-correction", verifyAccessToken, async (req, res) => 
       attendanceId,
       date: attendance.date,
 
-      // OLD VALUES (before correction)
       previousCheckIn: attendance.checkIn || "",
       previousCheckOut: attendance.checkOut || "",
       previousStatus: attendance.status || "absent",
 
-      // REQUESTED NEW VALUES
       requestedCheckIn,
       requestedCheckOut,
       requestedStatus,
@@ -277,10 +376,7 @@ router.post("/my-attendance-correction", verifyAccessToken, async (req, res) => 
   }
 });
 
-
-/* -------------------------------------------------------
-   Dashboard Summary
---------------------------------------------------------*/
+//dashboard summary
 router.get("/dashboard-summary", verifyAccessToken, async (req, res) => {
   try {
     const employeeId = getObjectId(req.user.employeeId);
@@ -311,5 +407,6 @@ router.get("/dashboard-summary", verifyAccessToken, async (req, res) => {
     res.status(500).json({ success: false, message: "Summary fetch failed" });
   }
 });
+
 
 module.exports = router;
