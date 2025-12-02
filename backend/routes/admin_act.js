@@ -382,15 +382,54 @@ router.get("/attendance", verifyAccessToken, isDeptHead, async (req, res) => {
  * GET /emp/attendance_records?date=YYYY-MM-DD
  * Access: Admin, Dept Head
  */
+// router.get(
+//   "/attendance_records",
+//   verifyAccessToken,
+//   isDeptHead,
+//   async (req, res) => {
+//     try {
+//       const date = req.query.date;
+//       console.log(`📅 Fetching attendance for date: ${date}`);
+
+//       if (!date) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Date parameter required (YYYY-MM-DD)",
+//         });
+//       }
+
+//       const iso = date + "T00:00:00.000Z";
+//       const data = await Attendance.find({ date: iso }).populate(
+//         "employeeId",
+//         "department employeeId name"
+//       );
+
+//       console.log(`✅ Found ${data.length} attendance records`);
+
+//       res.status(200).json({
+//         success: true,
+//         message: "Attendance records fetched",
+//         data,
+//       });
+//     } catch (err) {
+//       console.error("❌ Attendance records error:", err);
+//       res.status(500).json({
+//         success: false,
+//         message: "Failed to fetch attendance records",
+//         error: err.message,
+//       });
+//     }
+//   }
+// );
+
+//if db containes both isodate sting and date string ,to featch both type od date 
 router.get(
   "/attendance_records",
   verifyAccessToken,
   isDeptHead,
   async (req, res) => {
     try {
-      const date = req.query.date;
-      console.log(`📅 Fetching attendance for date: ${date}`);
-
+      const date = req.query.date; // "2025-11-28"
       if (!date) {
         return res.status(400).json({
           success: false,
@@ -398,13 +437,14 @@ router.get(
         });
       }
 
-      const iso = date + "T00:00:00.000Z";
-      const data = await Attendance.find({ date: iso }).populate(
-        "employeeId",
-        "department employeeId name"
-      );
+      const isoVersion = date + "T00:00:00.000Z";
 
-      console.log(`✅ Found ${data.length} attendance records`);
+      const data = await Attendance.find({
+        $or: [
+          { date: date },        // match string format
+          { date: isoVersion }   // match ISO format
+        ]
+      }).populate("employeeId", "department employeeId name");
 
       res.status(200).json({
         success: true,
@@ -412,7 +452,6 @@ router.get(
         data,
       });
     } catch (err) {
-      console.error("❌ Attendance records error:", err);
       res.status(500).json({
         success: false,
         message: "Failed to fetch attendance records",
@@ -421,6 +460,7 @@ router.get(
     }
   }
 );
+
 
 // ============================================
 // PAYROLL ROUTES
