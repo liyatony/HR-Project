@@ -44,29 +44,31 @@ const MarkAttendance = () => {
 
   // Fetch Today Attendance
   const fetchTodayAttendance = async () => {
+    
+  try {
+    const res = await axiosInstance.get("/emp/my-today-attendance");
 
-    try {
-      const res = await axiosInstance.get("/emp/my-today-attendance");
-
-      if (res.data.success) {
-        setTodayAttendance(res.data.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch today's attendance:", error);
+    if (res.data.success) {
+      setTodayAttendance(res.data.data);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch today's attendance:", error);
+  }
+};
+
+
 
   // Fetch Last 7 Days Records
   const fetchRecentAttendance = async () => {
-    try {
-      const res = await axiosInstance.get("/emp/my-last-7-days");
-      if (res.data.success) {
-        setRecentRecords(res.data.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch recent attendance:", error);
+  try {
+    const res = await axiosInstance.get("/emp/my-last-7-days");
+    if (res.data.success) {
+      setRecentRecords(res.data.data);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch recent attendance:", error);
+  }
+};
 
   //  CheckIn
   const handleCheckIn = async () => {
@@ -196,33 +198,37 @@ const MarkAttendance = () => {
       <EmployeeSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <div className="main-wrapper">
-        <header className="top-navbar">
-          <div className="navbar-left">
-            <button className="toggle-btn" onClick={toggleSidebar}>
-              <FiMenu />
-            </button>
+        
 
-            <div className="page-title">
-              <h1>Mark Attendance</h1>
-            </div>
-          </div>
-
-          <div className="navbar-right">
-            <div className="user-profile">
-              <img
-                src="https://ui-avatars.com/api/?name=Employee&background=4f46e5&color=fff"
-                className="profile-img"
-                alt="profile"
-              />
-              <div className="profile-info">
-                <span className="profile-name">Employee Dashboard</span>
-                <span className="profile-role">{user.name || ""}</span>
-              </div>
-            </div>
-          </div>
-        </header>
+          <header className="top-navbar">
+                  <div className="navbar-left">
+                    <button className="toggle-btn" onClick={toggleSidebar}>
+                      <FiMenu />
+                    </button>
+        
+                    <div className="page-title">
+                      <h1>Mark Attendance</h1>
+                     
+                    </div>
+                  </div>
+        
+                  <div className="navbar-right">
+                    <div className="user-profile">
+                      <img
+                        src="https://ui-avatars.com/api/?name=Employee&background=4f46e5&color=fff"
+                        className="profile-img"
+                        alt="profile"
+                      />
+                      <div className="profile-info">
+                        <span className="profile-name">Employee Dashboard</span>
+                        <span className="profile-role">{user.name || ""}</span>
+                      </div>
+                    </div>
+                  </div>
+                </header>
 
         <main className="content-area">
+         
           {message.text && (
             <div
               style={{
@@ -241,6 +247,7 @@ const MarkAttendance = () => {
             </div>
           )}
 
+       
           <div
             style={{
               background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
@@ -265,6 +272,7 @@ const MarkAttendance = () => {
             </p>
           </div>
 
+          
           <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-card-body">
@@ -329,6 +337,7 @@ const MarkAttendance = () => {
             </div>
           </div>
 
+        
           <div
             style={{
               display: "flex",
@@ -348,7 +357,9 @@ const MarkAttendance = () => {
                 color: "white",
                 borderRadius: "12px",
                 border: "none",
-                cursor: todayAttendance?.checkIn ? "not-allowed" : "pointer",
+                cursor: todayAttendance?.checkIn
+                  ? "not-allowed"
+                  : "pointer",
               }}
             >
               <FaCheckCircle /> Check In
@@ -379,7 +390,8 @@ const MarkAttendance = () => {
               <FaClock /> Check Out
             </button>
           </div>
-
+          
+        
           <div
             className="attendance-table-card"
             style={{ marginTop: "3rem", padding: "1rem" }}
@@ -449,7 +461,9 @@ const MarkAttendance = () => {
                         <td>{r.date}</td>
                         <td>{r.checkIn || "--"}</td>
                         <td>{r.checkOut || "--"}</td>
-                        <td>{calculateHours(r.checkIn, r.checkOut)}</td>
+                        <td>
+                          {calculateHours(r.checkIn, r.checkOut)}
+                        </td>
                         <td style={{ textTransform: "capitalize" }}>
                           {r.status}
                         </td>
