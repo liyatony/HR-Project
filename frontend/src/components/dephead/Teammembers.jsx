@@ -50,7 +50,7 @@ const Teammembers  = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const departments = ["IT", "Sales", "Marketing", "Operations"];
+  // const departments = ["IT", "Sales", "Marketing", "Operations"];
 
   useEffect(() => {
     fetchEmployees();
@@ -242,25 +242,7 @@ const fetchEmployees = async () => {
                 }}
               />
 
-              <FormControl size="small" sx={{ minWidth: 200 }}>
-                <Select
-                  value={filterDept}
-                  onChange={(e) => setFilterDept(e.target.value)}
-                  displayEmpty
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <FilterList />
-                    </InputAdornment>
-                  }
-                >
-                  <MenuItem value="all">All Departments</MenuItem>
-                  {departments.map((dept) => (
-                    <MenuItem key={dept} value={dept}>
-                      {dept}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              
             </Box>
 
             <Box sx={{ display: "flex", gap: 2 }}>
@@ -270,9 +252,9 @@ const fetchEmployees = async () => {
                 onSubmit={handleAddEmployeeSuccess}
               />
 
-              <Button variant="outlined" startIcon={<FileDownload />}>
+              {/* <Button variant="outlined" startIcon={<FileDownload />}>
                 Export
-              </Button>
+              </Button> */}
               <Button
                 variant="contained"
                 startIcon={<PersonAdd />}
@@ -355,7 +337,7 @@ const fetchEmployees = async () => {
               </h3>
             </div>
 
-            <div
+            {/* <div
               style={{
                 background: "#ffffff",
                 borderRadius: "12px",
@@ -364,7 +346,7 @@ const fetchEmployees = async () => {
                 border: "1px solid #e5e7eb",
               }}
             >
-              <p
+              {/* <p
                 style={{
                   fontSize: "0.875rem",
                   color: "#6b7280",
@@ -384,8 +366,8 @@ const fetchEmployees = async () => {
                 }}
               >
                 {departments.length}
-              </h3>
-            </div>
+              </h3> */}
+            {/* </div> */}
           </div>
 
           <TableContainer component={Paper} sx={{ boxShadow: 1, mt: 3 }}>

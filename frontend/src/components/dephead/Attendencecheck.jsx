@@ -13,8 +13,12 @@ import {
   FaDownload,
 } from "react-icons/fa";
 import "../../styles/attendance.css";
+import { useAuth } from "../../utils/AuthContext";
 
 const Attendancecheck = () => {
+  const { user } = useAuth();
+
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState("attendance");
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,30 +31,77 @@ const Attendancecheck = () => {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
+  
   const departments = ["HR", "Engineering", "Marketing", "Sales", "Finance"];
 
   useEffect(() => {
     if (!filterStartDate) return;
 
-    const fetchAttendance = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    // const fetchAttendance = async () => {
+    //   try {
+    //     setLoading(true);
+    //     setError(null);
         
-        const response = await axiosInstance.get("/admin/attendance_records", {
-          params: { date: filterStartDate },
-        });
+    //     const response = await axiosInstance.get("/admin/attendance_records", {
+    //       params: { date: filterStartDate },
+    //     });
         
-        console.log("Attendance data:", response.data);
-        setAttendanceRecords(response.data.data || []);
-      } catch (err) {
-        console.error("Error fetching attendance data:", err);
-        setError(err.response?.data?.message || "Failed to fetch attendance");
-        setAttendanceRecords([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    //     console.log("Attendance data:", response.data);
+    //     setAttendanceRecords(response.data.data || []);
+    //   } catch (err) {
+    //     console.error("Error fetching attendance data:", err);
+    //     setError(err.response?.data?.message || "Failed to fetch attendance");
+    //     setAttendanceRecords([]);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
+const fetchAttendance = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+
+    let response;
+
+    if (user?.role === "dpt_head") {
+      // 🔥 Show ONLY employees from this department
+      response = await axiosInstance.get("/dept/my-team");
+      
+      // Convert to a simple employee list (not attendance)
+      const employees = response.data.data || [];
+
+      // Show them in table format
+      const formatted = employees.map(emp => ({
+        _id: emp._id,
+        employeeName: emp.name,
+        employeeId: emp,
+        department: emp.department,
+        date: filterStartDate,
+        checkIn: "-",
+        checkOut: "-",
+        totalHours: "-",
+        status: "absent", // Default if no attendance
+      }));
+
+      setAttendanceRecords(formatted);
+      
+    } else {
+      // Admin → show normal attendance
+      response = await axiosInstance.get("/admin/attendance_records", {
+        params: { date: filterStartDate },
+      });
+
+      setAttendanceRecords(response.data.data || []);
+    }
+
+  } catch (err) {
+    console.error("Error fetching attendance data:", err);
+    setError(err.response?.data?.message || "Failed to fetch attendance");
+    setAttendanceRecords([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchAttendance();
   }, [filterStartDate]);
