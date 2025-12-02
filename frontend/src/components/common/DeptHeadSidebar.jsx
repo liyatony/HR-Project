@@ -131,3 +131,4 @@ const DeptHeadSidebar = ({ isOpen, toggleSidebar, activeMenu, setActiveMenu }) =
 };
 
 export default DeptHeadSidebar;
+
