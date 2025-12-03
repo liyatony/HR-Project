@@ -8,6 +8,22 @@ const User = require("../models/user_model");
 const { verifyAccessToken, isDeptHead } = require("../middleware/auth");
 const deptController = require("../controllers/deptHeadController");
 const LeaveRequest = require("../models/Leave_model");
+
+
+
+
+const auth = require("../middleware/auth");
+
+
+router.get(
+  "/attendance",
+  verifyAccessToken,
+  isDeptHead,
+  deptController.getDeptAttendance
+);
+
+
+
 /**
  * Get logged-in dept head's department employees
  * GET /dept/my-team
@@ -16,7 +32,7 @@ router.get("/my-team", verifyAccessToken, isDeptHead, async (req, res) => {
   try {
     // Get the logged-in dept head's employee record
     const deptHead = await Employee.findById(req.user.employeeId);
-    
+
     if (!deptHead) {
       return res.status(404).json({
         success: false,
@@ -27,8 +43,8 @@ router.get("/my-team", verifyAccessToken, isDeptHead, async (req, res) => {
     const department = deptHead.department;
 
     // Get all employees in THIS dept head's department (excluding the dept head)
-    const employees = await Employee.find({ 
-      department, 
+    const employees = await Employee.find({
+      department,
       active: true,
       _id: { $ne: deptHead._id } // Exclude dept head from list
     }).select("-passwordHash");
@@ -56,7 +72,7 @@ router.get("/my-team", verifyAccessToken, isDeptHead, async (req, res) => {
 router.get("/team-attendance", verifyAccessToken, isDeptHead, async (req, res) => {
   try {
     const date = req.query.date || new Date().toISOString().split('T')[0];
-    
+
     // Get dept head's department
     const deptHead = await Employee.findById(req.user.employeeId);
     if (!deptHead) {
@@ -69,11 +85,11 @@ router.get("/team-attendance", verifyAccessToken, isDeptHead, async (req, res) =
     const department = deptHead.department;
 
     // Get all employees in this department
-    const employees = await Employee.find({ 
-      department, 
-      active: true 
+    const employees = await Employee.find({
+      department,
+      active: true
     });
-    
+
     const employeeIds = employees.map(e => e._id);
 
     // Get attendance for this date
@@ -118,11 +134,11 @@ router.get("/team-attendance-summary", verifyAccessToken, isDeptHead, async (req
     const department = deptHead.department;
 
     // Get all employees in department
-    const employees = await Employee.find({ 
-      department, 
-      active: true 
+    const employees = await Employee.find({
+      department,
+      active: true
     });
-    
+
     const employeeIds = employees.map(e => e._id);
 
     // Get current month's date range
@@ -280,11 +296,11 @@ router.put("/leave-request/:id", verifyAccessToken, isDeptHead, async (req, res)
     res.status(200).json({
       success: true,
       message: `Leave request ${status}`,
-      data: { 
-        _id: leaveId, 
-        status, 
+      data: {
+        _id: leaveId,
+        status,
         approvedBy: req.user.id,
-        approverName: deptHead.name 
+        approverName: deptHead.name
       },
     });
   } catch (error) {
@@ -315,11 +331,11 @@ router.get("/team-performance", verifyAccessToken, isDeptHead, async (req, res) 
     const department = deptHead.department;
 
     // Get employees
-    const employees = await Employee.find({ 
-      department, 
-      active: true 
+    const employees = await Employee.find({
+      department,
+      active: true
     }).select("-passwordHash");
-    
+
     const employeeIds = employees.map(e => e._id);
 
     // Get current month attendance
@@ -382,7 +398,7 @@ router.get("/team-performance", verifyAccessToken, isDeptHead, async (req, res) 
 router.get("/team-member/:id", verifyAccessToken, isDeptHead, async (req, res) => {
   try {
     const employeeId = req.params.id;
-    
+
     // Get dept head's department
     const deptHead = await Employee.findById(req.user.employeeId);
     if (!deptHead) {
@@ -394,7 +410,7 @@ router.get("/team-member/:id", verifyAccessToken, isDeptHead, async (req, res) =
 
     // Get employee and verify they're in the same department
     const employee = await Employee.findById(employeeId).select("-passwordHash");
-    
+
     if (!employee) {
       return res.status(404).json({
         success: false,
@@ -437,7 +453,7 @@ const Performance = require("../models/performance_model");
  * POST /dept/performance/add
  */
 router.post("/performance/add", verifyAccessToken, isDeptHead, async (req, res) => {
-   console.log("BODY RECEIVED:", req.body); 
+  console.log("BODY RECEIVED:", req.body);
   try {
     const { employeeId, date, ratings, comments, score } = req.body;
 
