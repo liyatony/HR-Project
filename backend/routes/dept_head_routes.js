@@ -6,7 +6,8 @@ const Attendance = require("../models/attendance_model");
 const Payroll = require("../models/payroll_model");
 const User = require("../models/user_model");
 const { verifyAccessToken, isDeptHead } = require("../middleware/auth");
-
+const deptController = require("../controllers/deptHeadController");
+const LeaveRequest = require("../models/Leave_model");
 /**
  * Get logged-in dept head's department employees
  * GET /dept/my-team
@@ -176,10 +177,46 @@ router.get("/team-attendance-summary", verifyAccessToken, isDeptHead, async (req
  * Get leave requests for dept head's department
  * GET /dept/team-leave-requests
  */
+// router.get("/team-leave-requests", verifyAccessToken, isDeptHead, async (req, res) => {
+//   try {
+//     // Get dept head's department
+//     const deptHead = await Employee.findById(req.user.employeeId);
+//     if (!deptHead) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Department head not found",
+//       });
+//     }
+
+//     const department = deptHead.department;
+
+//     // Note: You need to create a Leave model
+//     // For now, returning empty array with proper structure
+//     const leaveRequests = [];
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Leave requests fetched",
+//       data: leaveRequests,
+//       department: department,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching leave requests:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch leave requests",
+//       error: error.message,
+//     });
+//   }
+// });
+/**
+ * Get leave requests for dept head's department
+ * GET /dept/team-leave-requests
+ */
 router.get("/team-leave-requests", verifyAccessToken, isDeptHead, async (req, res) => {
   try {
-    // Get dept head's department
     const deptHead = await Employee.findById(req.user.employeeId);
+
     if (!deptHead) {
       return res.status(404).json({
         success: false,
@@ -189,8 +226,7 @@ router.get("/team-leave-requests", verifyAccessToken, isDeptHead, async (req, re
 
     const department = deptHead.department;
 
-    // Note: You need to create a Leave model
-    // For now, returning empty array with proper structure
+    // ❌ EMPTY ALWAYS!!
     const leaveRequests = [];
 
     res.status(200).json({
@@ -208,6 +244,7 @@ router.get("/team-leave-requests", verifyAccessToken, isDeptHead, async (req, re
     });
   }
 });
+
 
 /**
  * Approve/Reject leave request (dept head can only approve for their department)
@@ -554,6 +591,55 @@ router.get("/performance/:employeeId", verifyAccessToken, isDeptHead, async (req
     res.status(500).json({
       success: false,
       message: "Failed to fetch performance",
+      error: error.message,
+    });
+  }
+});
+/**
+ * Get leave requests for dept head's department
+ * GET /dept/team-leave-requests
+ */
+router.get("/team-leave-requests", verifyAccessToken, isDeptHead, async (req, res) => {
+  try {
+    // 1️⃣ Get dept head info
+    const deptHead = await Employee.findById(req.user.employeeId);
+    if (!deptHead) {
+      return res.status(404).json({
+        success: false,
+        message: "Department head not found",
+      });
+    }
+
+    const department = deptHead.department;
+
+    // 2️⃣ Get all employees in this department
+    const employees = await Employee.find({
+      department,
+      active: true,
+    });
+
+    const employeeIds = employees.map(e => e._id);
+
+    // 3️⃣ Fetch leave requests only for those employees
+    const leaveRequests = await LeaveRequest.find({
+      employeeId: { $in: employeeIds },
+    })
+      .populate("employeeId", "name email department")
+      .sort({ appliedDate: -1 });
+
+    // 4️⃣ Return them
+    res.status(200).json({
+      success: true,
+      message: "Leave requests fetched successfully",
+      department,
+      data: leaveRequests,
+    });
+
+  } catch (error) {
+    console.error("Error fetching leave requests:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch leave requests",
       error: error.message,
     });
   }

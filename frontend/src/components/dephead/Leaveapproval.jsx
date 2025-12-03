@@ -15,6 +15,8 @@ import {
   FaDownload,
 } from "react-icons/fa";
 import "../../styles/leavemanagement.css";
+import { useAuth } from "../../utils/AuthContext";
+
 
 const LeaveManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,6 +28,9 @@ const LeaveManagement = () => {
   const [filterEndDate, setFilterEndDate] = useState("");
   const [leaveApprove, setLeaveApprove] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState(null);
+const [filterDepartment, setFilterDepartment] = useState("");
+const { user } = useAuth();
+
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -39,14 +44,31 @@ const LeaveManagement = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
 
 
-  const fetchLeaves =()=>{
-     axiosInstance.get("admin/leave").then((res) => {
-      console.log(res.data.data);
+  // const fetchLeaves =()=>{
+  //    axiosInstance.get("admin/leave").then((res) => {
+  //     console.log(res.data.data);
 
-      setLeaveRequests(res.data.data);
-    });
+  //     setLeaveRequests(res.data.data);
+      
+  //   });
 
-  }
+  // }
+  const fetchLeaves = () => {
+  axiosInstance.get("admin/leave").then((res) => {
+    const allLeaves = res.data.data;
+
+    console.log("All leaves:", allLeaves);
+
+    // ⭐ FILTER BY DEPARTMENT ONLY
+    const deptLeaves = allLeaves.filter(
+      (req) => req.employeeId?.department === user.department
+    );
+
+    setLeaveRequests(deptLeaves);
+  });
+};
+
+  
 
   useEffect(() => {
     fetchLeaves()

@@ -17,6 +17,8 @@ import {
   FaUserTimes,
 } from "react-icons/fa";
 import "../../styles/dashboard.css";
+import { useNavigate } from "react-router-dom";
+
 
 const DeptHeadDashboard = () => {
   const { user } = useAuth();
@@ -34,7 +36,7 @@ const DeptHeadDashboard = () => {
     recentActivities: [],
     teamPerformance: [],
   });
-
+const [pendingRequests, setPendingRequests] = useState([]);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   useEffect(() => {
@@ -75,6 +77,49 @@ const DeptHeadDashboard = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        loadPendingLeaves(),
+        loadDashboardStats(),
+        loadPerformanceData()
+      ]);
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // const loadPendingLeaves = async () => {
+  //   try {
+  //     const response = await axiosInstance.get("/admin/pending");
+  //     setPendingRequests(response.data);
+  //   } catch (error) {
+  //     console.error("Error loading pending leaves:", error);
+  //   }
+  // };
+  const loadPendingLeaves = async () => {
+  try {
+    const response = await axiosInstance.get("/admin/pending");
+    const allPending = response.data;
+
+    // ⭐ FILTER: Only leaves from THIS department head's department
+    const filtered = allPending.filter(
+      (req) => req.employeeId?.department === user.department
+    );
+
+    setPendingRequests(filtered);
+
+  } catch (error) {
+    console.error("Error loading pending leaves:", error);
+  }
+};
 
   const handleLeaveAction = async (leaveId, action) => {
     try {
@@ -182,59 +227,43 @@ const DeptHeadDashboard = () => {
           {/* Content Grid */}
           <div className="content-grid">
             {/* Pending Leave Requests */}
-            <div className="panel requests-panel">
-              <div className="panel-header">
-                <h3 className="panel-title">Pending Leave Requests</h3>
-                <span className="badge-count">
-                  {dashboardData.pendingLeaveRequests.length}
-                </span>
-              </div>
-              <div className="panel-body">
-                {dashboardData.pendingLeaveRequests.length === 0 ? (
-                  <p style={{ 
-                    textAlign: 'center', 
-                    padding: '2rem', 
-                    color: '#6b7280' 
-                  }}>
-                    No pending requests
-                  </p>
-                ) : (
-                  dashboardData.pendingLeaveRequests.map((req, index) => (
-                    <div key={index} className="request-item">
-                      <div className="request-icon">
-                        <FaHourglassHalf />
-                      </div>
-                      <div className="request-content">
-                        <p className="request-type">{req.leaveType}</p>
-                        <p className="request-employee">{req.employeeName}</p>
-                        <span className="request-dept">
-                          {req.startDate} to {req.endDate}
-                        </span>
-                      </div>
-                      <div className="request-actions">
-                        <button 
-                          className="btn-icon btn-approve"
-                          onClick={() => handleLeaveAction(req._id, 'approved')}
-                          title="Approve"
-                        >
-                          <FaCheckCircle />
-                        </button>
-                        <button 
-                          className="btn-icon btn-reject"
-                          onClick={() => handleLeaveAction(req._id, 'rejected')}
-                          title="Reject"
-                        >
-                          <FaTimesCircle />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+             <div className="panel requests-panel">
+                          <div className="panel-header">
+                            <h3 className="panel-title">Pending Leave Requests</h3>
+                            <span className="badge-count">{pendingRequests.length}</span>
+                          </div>
+                          <div className="panel-body">
+                            {pendingRequests.length === 0 ? (
+                              <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                                <p>No pending leave requests</p>
+                              </div>
+                            ) : (
+                              pendingRequests.slice(0, 5).map((req, index) => (
+                                <div key={index} className="request-item">
+                                  <div className="request-icon">
+                                    <FaHourglassHalf />
+                                  </div>
+                                  <div className="request-content">
+                                    <p className="request-type">Leave Request</p>
+                                    <p className="request-employee">{req.employeeId.name}</p>
+                                    <span className="request-dept">{req.employeeId.department}</span>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                          <div className="panel-footer">
+                            <button 
+                              className="btn-secondary btn-block" 
+                              onClick={() => navigate("/admin/leave-management")}
+                            >
+                              View All Requests
+                            </button>
+                          </div>
+                        </div>
 
             {/* Recent Activities */}
-            <div className="panel activity-panel">
+            {/* <div className="panel activity-panel">
               <div className="panel-header">
                 <h3 className="panel-title">Today's Attendance</h3>
                 <button className="btn-text">View All</button>
@@ -275,7 +304,7 @@ const DeptHeadDashboard = () => {
                   ))
                 )}
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Quick Actions */}
