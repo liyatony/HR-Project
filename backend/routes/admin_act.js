@@ -630,6 +630,8 @@ router.put(
   }
 );
 
+//leave routes
+
 router.get("/leave", async (req, res) => {
   try {
     const allleave = await LeaveRequest.find().populate(
@@ -664,15 +666,21 @@ router.put("/leave_confirm", async (req, res) => {
   }
 });
 
+//leave approve route
 router.post("/approved_leave", async (req, res) => {
   try {
-    console.log(req.body);
+    console.log("approved",req.body);
 
     const email = req.body.email;
     const employeeId = req.body.employeeId;
     const days = req.body.days;
     const name = req.body.employeeName;
     const LeaveId = req.body.leaveId;
+
+    console.log(name);
+    console.log(days);
+    
+    
 
     if (!employeeId || !days || !Array.isArray(days)) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -697,7 +705,7 @@ router.post("/approved_leave", async (req, res) => {
       );
     }
 
-    const approveTemplate = leaveApprovemail(name, days, employeeId, LeaveId);
+    const approveTemplate = leaveApprovemail({name, days, employeeId, LeaveId});
 
     try {
       await transporter.sendMail({
@@ -729,6 +737,12 @@ router.put("/rejected_leave", async (req, res) => {
   const startDate = req.body.startDate;
   const endDate = req.body.endDate;
 
+  console.log("rejcated",name);
+  console.log(startDate,endDate);
+  
+
+  
+
   try {
     if (!id) {
       return res.status(400).json({ message: "leaveId is required" });
@@ -750,7 +764,15 @@ router.put("/rejected_leave", async (req, res) => {
 
     console.log("Rejected Leave:", leavreq);
 
-    const { html, text } = leaveRejectedmail(name, startDate, endDate)
+    const { html, text } = leaveRejectedmail({
+   name,
+  startDate,
+  endDate,
+  reason: leavreq.reason || "Not specified",
+  managerName: "HR Team",
+  companyName: "HR-SYS"
+});
+
 
 
     try {

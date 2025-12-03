@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../common/DeptHeadSidebar";
 import Navbar from "../common/DepHeadNavbar";
 import axiosInstance from "../../utils/axiosInstance";
+
 import {
   FaCalendarCheck,
   FaUserCheck,
@@ -14,10 +15,10 @@ import {
 } from "react-icons/fa";
 import "../../styles/attendance.css";
 import { useAuth } from "../../utils/AuthContext";
+// import employee_model from "../../../../backend/models/employee_model";
 
 const Attendancecheck = () => {
   const { user } = useAuth();
-
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState("attendance");
@@ -31,7 +32,6 @@ const Attendancecheck = () => {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  
   const departments = ["HR", "Engineering", "Marketing", "Sales", "Finance"];
 
   useEffect(() => {
@@ -41,11 +41,11 @@ const Attendancecheck = () => {
     //   try {
     //     setLoading(true);
     //     setError(null);
-        
+
     //     const response = await axiosInstance.get("/admin/attendance_records", {
     //       params: { date: filterStartDate },
     //     });
-        
+
     //     console.log("Attendance data:", response.data);
     //     setAttendanceRecords(response.data.data || []);
     //   } catch (err) {
@@ -56,52 +56,56 @@ const Attendancecheck = () => {
     //     setLoading(false);
     //   }
     // };
-const fetchAttendance = async () => {
-  try {
-    setLoading(true);
-    setError(null);
+    const fetchAttendance = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    let response;
+        let response;
 
-    if (user?.role === "dpt_head") {
-      // 🔥 Show ONLY employees from this department
-      response = await axiosInstance.get("/dept/my-team");
-      
-      // Convert to a simple employee list (not attendance)
-      const employees = response.data.data || [];
+        if (user?.role === "dpt_head") {
+          // 🔥 Show ONLY employees from this department
+          response = await axiosInstance.get("/dept/attendance", {
+            params: { date: filterStartDate },
+          });
 
-      // Show them in table format
-      const formatted = employees.map(emp => ({
-        _id: emp._id,
-        employeeName: emp.name,
-        employeeId: emp,
-        department: emp.department,
-        date: filterStartDate,
-        checkIn: "-",
-        checkOut: "-",
-        totalHours: "-",
-        status: "absent", // Default if no attendance
-      }));
+          // Convert to a simple employee list (not attendance)
+          const employees = response.data.data || [];
 
-      setAttendanceRecords(formatted);
-      
-    } else {
-      // Admin → show normal attendance
-      response = await axiosInstance.get("/admin/attendance_records", {
-        params: { date: filterStartDate },
-      });
+          console.log("......", employees);
 
-      setAttendanceRecords(response.data.data || []);
-    }
+          // Show them in table format
+          const formatted = employees.map((emp) => ({
+            _id: emp._id,
+            employeeName: emp.name,
+            employeeId: emp,
+            department: emp.employeeId.department,
+            date: filterStartDate,
+            checkIn: emp.checkIn || "-",
+            checkOut: emp.checkOut || "-",
+            totalHour: emp.totalHours,
+            status: emp.status, // Default if no attendance
+          }));
 
-  } catch (err) {
-    console.error("Error fetching attendance data:", err);
-    setError(err.response?.data?.message || "Failed to fetch attendance");
-    setAttendanceRecords([]);
-  } finally {
-    setLoading(false);
-  }
-};
+          setAttendanceRecords(formatted);
+        } else {
+          // Admin → show normal attendance
+          response = await axiosInstance.get("/admin/attendance_records", {
+            params: { date: filterStartDate },
+          });
+
+          console.log("attendennceee", response.data.data);
+
+          setAttendanceRecords(response.data.data || []);
+        }
+      } catch (err) {
+        console.error("Error fetching attendance data:", err);
+        setError(err.response?.data?.message || "Failed to fetch attendance");
+        setAttendanceRecords([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchAttendance();
   }, [filterStartDate]);
@@ -109,28 +113,28 @@ const fetchAttendance = async () => {
   const statsData = [
     {
       title: "Total Present",
-      value: attendanceRecords.filter(r => r.status === "present").length,
+      value: attendanceRecords.filter((r) => r.status === "present").length,
       icon: <FaUserCheck />,
       color: "#16a34a",
       bgColor: "#dcfce7",
     },
     {
       title: "Total Absent",
-      value: attendanceRecords.filter(r => r.status === "absent").length,
+      value: attendanceRecords.filter((r) => r.status === "absent").length,
       icon: <FaUserTimes />,
       color: "#dc2626",
       bgColor: "#fee2e2",
     },
     {
       title: "On Leave",
-      value: attendanceRecords.filter(r => r.status === "leave").length,
+      value: attendanceRecords.filter((r) => r.status === "leave").length,
       icon: <FaCalendarAlt />,
       color: "#ea580c",
       bgColor: "#ffedd5",
     },
     {
       title: "Late Arrivals",
-      value: attendanceRecords.filter(r => r.isLate).length,
+      value: attendanceRecords.filter((r) => r.isLate).length,
       icon: <FaClock />,
       color: "#d97706",
       bgColor: "#fef3c7",
@@ -214,21 +218,23 @@ const fetchAttendance = async () => {
 
           {/* Loading State */}
           {loading && (
-            <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <div style={{ textAlign: "center", padding: "2rem" }}>
               <p>Loading attendance records...</p>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '2rem', 
-              color: '#dc2626',
-              backgroundColor: '#fee2e2',
-              borderRadius: '8px',
-              margin: '1rem 0'
-            }}>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "2rem",
+                color: "#dc2626",
+                backgroundColor: "#fee2e2",
+                borderRadius: "8px",
+                margin: "1rem 0",
+              }}
+            >
               <p>{error}</p>
             </div>
           )}
@@ -262,25 +268,30 @@ const fetchAttendance = async () => {
                   <tbody>
                     {attendanceRecords.length === 0 ? (
                       <tr>
-                        <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>
+                        <td
+                          colSpan="8"
+                          style={{ textAlign: "center", padding: "2rem" }}
+                        >
                           No attendance records found for this date
                         </td>
                       </tr>
                     ) : (
                       attendanceRecords.map((record) => (
-                        <tr key={record._id}>
+                        <tr key={record?._id || Math.random()}>
                           <td className="emp-id-cell">
-                            {record.employeeId?._id?.substring(0, 8) || 'N/A'}
+                            {record.employeeId?._id?.substring(0, 8) || "N/A"}
                           </td>
-                          <td className="emp-name-cell">{record.employeeName}</td>
-                          <td>{record.employeeId?.department || 'N/A'}</td>
-                          <td>
-                            {new Date(record.date).toLocaleDateString()}
+                          <td className="emp-name-cell">
+                            {record.employeeId.employeeName}
                           </td>
-                          <td className="time-cell">{record.checkIn || '-'}</td>
-                          <td className="time-cell">{record.checkOut || '-'}</td>
+                          <td>{record.department || "N/A"}</td>
+                          <td>{new Date(record.date).toLocaleDateString()}</td>
+                          <td className="time-cell">{record.checkIn || "-"}</td>
+                          <td className="time-cell">
+                            {record.checkOut || "-"}
+                          </td>
                           <td className="hours-cell">
-                            {record.totalHours ? `${record.totalHours}hrs` : '-'}
+                            {record.totalHour}
                           </td>
                           <td>
                             <span

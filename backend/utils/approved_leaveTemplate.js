@@ -1,4 +1,14 @@
-const approved_leaveTemplate=(name,days,employeeId,)=>{
+const approved_leaveTemplate=({name,days,employeeId})=>{
+
+  function isoToDateString(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-IN");
+  }
+
+  const startDate = isoToDateString(days[0]);
+  const endDate = isoToDateString(days[days.length - 1]);
+
+
   return(
     `
     <!DOCTYPE html>
@@ -40,7 +50,7 @@ const approved_leaveTemplate=(name,days,employeeId,)=>{
       <h2>Employee Id-${employeeId}</h2>
       <p>Dear <strong>${name}</strong>,</p>
       <p>
-        Your leave request from <strong>${days[0]}</strong> to <strong>${days[days.length -1]}</strong> has been
+        Your leave request from <strong>${startDate}</strong> to <strong>${endDate}</strong> has been
         <strong>approved</strong>.
       </p>
       <p>We hope you have a great time off!</p>

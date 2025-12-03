@@ -1,6 +1,8 @@
 
-const rejected_leaveTemplate = ({ employeeName, startDate,endDate ,reason = "Not specified", managerName = "HR Team", companyName = "HR-SYS" }) => {
+const rejected_leaveTemplate = ({ name, startDate,endDate ,reason = "Not specified", managerName = "HR Team", companyName = "HR-SYS" }) => {
 
+  console.log(name,startDate,endDate);
+  
 
   function isoToDateString(iso) {
     const d = new Date(iso);
@@ -10,7 +12,7 @@ const rejected_leaveTemplate = ({ employeeName, startDate,endDate ,reason = "Not
 const sDate=isoToDateString(startDate);
 const eDate =isoToDateString(endDate)
   
-  const plainText = `Hi ${employeeName},
+  const plainText = `Hi ${name},
 
 Your leave request from ${sDate} to ${eDate} has been rejected.
 
@@ -50,13 +52,13 @@ ${companyName}
     </div>
 
     <div class="content">
-      <p>Hi <strong>${employeeName}</strong>,</p>
+      <p>Hi <strong>${name}</strong>,</p>
 
       <p>We are writing to inform you that your leave request for the period below has been <strong style="color:#c53030;">rejected</strong>.</p>
 
       <div class="meta">
-        <p><strong>From:</strong> ${startDate}</p>
-        <p><strong>To:</strong> ${endDate}</p>
+        <p><strong>From:</strong> ${sDate}</p>
+        <p><strong>To:</strong> ${eDate}</p>
         <p><strong>Reason provided:</strong> ${reason}</p>
       </div>
 
